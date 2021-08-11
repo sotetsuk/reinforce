@@ -1,56 +1,30 @@
-![build](https://github.com/sotetsuk/python-template/workflows/build/badge.svg)
+![build](https://github.com/sotetsuk/reinforce/workflows/build/badge.svg)
 
-# python-template
-Python package and CLI template available on both PyCharm and Visual Studio Code (VSCode)
+# REINFORCE
 
-## Features
-
-|   | PyCharm | VSCode | Commands |
-|:---|:---:|:---:|:---|
-| Type check | via PyCharm | via Pylance | `make check` |
-| Format/Check (**black/isort**) | ✔ | ✔ | `make format/check` |
-| Test (**pytest/doctest**) | ✔ | ✔ | `make test` |
+A simple REINFORCE algorithm implementation.
 
 ## Usage
 
-1. Click `Use this template` in [github.com/sotetsuk/python-template](https://github.com/sotetsuk/python-template)
-2. Write up `setup.py`
-    - If you do not create CLI, please remove `entory_points`
-3. Rename Python package name following the instruction below
-4. For CLI usage, please rename command name folowing the instruction below
-5. Attach new CI badge
-6. Attach new License
+```py
+import gym
+from reinforce import REINFORCE, EntropyAugmentedReturn, FutureReturn, AvgBaseline, EpisodicSyncVectorEnv
 
-### Rename `reinforce` to your package name
+model = LinearModel()
+opt = SGD()
 
-```sh
-$ export PKG_NAME=<YOUR PACKAGE NAME>
-$ git mv reinforce ${PKG_NAME}
-$ for f in $(git grep reinforce | cut -d ":" -f 1); do sed -i "" -e "s/reinforce/${PKG_NAME}/" ${f} ; done
+env = gym.make_env()
+env = EpisodicSyncVectorEnv(env, n_env=10)
+
+agent = REINFORCE()
+agent = EntropyAugmentedReturn(agent, beta=1.0)
+agent = FutureReturn(agent)
+agent = AvgBaseline(agent, debiasing=True)
+
+for i in range(100):
+    agnet.train(env, model, opt, n_steps=1000)
+    evaluate(env, model, deterministic=True)
 ```
-
-### Rename `mycmd` to your command name
-
-```sh
-$ export CMD_NAME=<YOUR COMMAND NAME>
-$ for f in $(git grep mycmd | cut -d ":" -f 1); do sed -i "" -e "s/mycmd/${PKG_NAME}/" ${f} ; done
-```
-
-## Interpreter settings
-This project uses virtualenv in `<repo-root>/venv`. Please initialize it if not exists.
-
-- **PyCharm**: `Preferences` => `Python Interpreter` => `Add`
-    - [Configure a Python interpreter - Help | PyCharm](https://www.jetbrains.com/help/pycharm/configuring-python-interpreter.html)
-- **VSCode**: Manually prepare it or run `$ make venv`
-
-## Run all tests
-
-- **PyCharm**: [Run tests - Help | PyCharm](https://www.jetbrains.com/help/pycharm/performing-tests.html)
-  - Add `pytest`
-  - `Script path`: `<project-root>/<your pkg name>`
-  - `Parameters`: `--doctest-modules`
-- **VSCode**: [Python testing in Visual Studio Code](https://code.visualstudio.com/docs/python/testing)
-
 
 ## License
 
