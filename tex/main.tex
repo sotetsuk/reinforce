@@ -27,10 +27,53 @@ We summarize the famous REINFORCE algorithm variants.
 \end{abstract}
 
 \section{Notation}
-Notation.
+Sutton book~\cite{Sutton2018-ij}.
 
 \section{REINFORCE variants}
-Sutton book~\cite{Sutton2018-ij}.
+
+Policy gradient $\nabla_\theta J(\theta)$ is defined by
+
+\begin{eqnarray}
+\nabla_\theta J(\theta) 
+= \mathbb{E} \Biggl[ \nabla_\theta \log \pi_\theta (a|s) \,\sum_{t^\prime=1}^T r(s, a) \Biggr]
+\end{eqnarray}
+
+\subsection{Vanilla REINFORCE}
+
+\begin{eqnarray}
+\nabla_\theta J(\theta) 
+&\approx& \frac{1}{N} \sum_{n=1}^{N} \sum_{t=1}^{T} \Biggl(\, \sum_{t^\prime=1}^T r(s_{n, t^\prime}, a_{n, t^\prime}) \Biggr) \nabla_\theta \log \pi_\theta (a_{n, t}|s_{n, t}) \\
+&=& \frac{1}{N} \sum_{n=1}^{N} \Biggl(\, \sum_{t^\prime=1}^T r(s_{n, t^\prime}, a_{n, t^\prime}) \Biggr)\sum_{t=1}^{T} \nabla_\theta \log \pi_\theta (a_{n, t}|s_{n, t}) \\
+&=& \frac{1}{N} \sum_{n=1}^{N} \mathcal{R}_n \sum_{t=1}^{T} \nabla_\theta \log \pi_\theta (a_{n, t}|s_{n, t}) 
+\end{eqnarray}
+where $\mathcal{R}_{n} = \sum_{t^\prime=1}^T r(s_{n, t^\prime}, a_{n, t^\prime})$.
+
+\subsection{REINFORCE with Future Return}
+
+\begin{eqnarray}
+\nabla_\theta J(\theta) 
+&\approx& \frac{1}{N} \sum_{n=1}^{N} \sum_{t=1}^{T}  \Biggl(\, \sum_{{\color{red}{t^\prime=t}}}^{T} r(s_{n, t^\prime}, a_{n, t^\prime}) \Biggr) \nabla_\theta \log \pi_\theta (a_{n, t}|s_{n, t})\\
+&=& \frac{1}{N} \sum_{n=1}^{N} \sum_{t=1}^{T} \mathcal{R}_{n, {\color{red}{t}}} \nabla_\theta \log \pi_\theta (a_{n, t}|s_{n, t}) 
+\end{eqnarray}
+
+where, $\mathcal{R}_{n, t} = \sum_{t^\prime=t}^T r(s_{n, t^\prime}, a_{n, t^\prime})$.
+
+
+\subsection{REINFORCE with Entropy Bonus}
+\subsection{REINFORCE with Baselines}
+
+\begin{eqnarray}
+\nabla_\theta J(\theta) 
+\approx \frac{1}{N} \sum_{n=1}^{N} \Biggl(\mathcal{R}_n {\color{red}{- \frac{1}{N} \sum_{n^\prime=1}^N \mathcal{R}_n }} \Biggr)\sum_{t=1}^{T} \nabla_\theta \log \pi_\theta (a_{n, t}|s_{n, t}) 
+\end{eqnarray}
+
+For the future return case, 
+
+\begin{eqnarray}
+\nabla_\theta J(\theta) 
+\approx \frac{1}{N} \sum_{n=1}^{N} \sum_{t=1}^{T} \Biggl(\mathcal{R}_{n, t} {\color{red}{- \frac{1}{N} \sum_{n^\prime=1}^N \mathcal{R}_{n^\prime, t} }} \Biggr)  \nabla_\theta \log \pi_\theta (a_{n, t}|s_{n, t}) 
+\end{eqnarray}
+
 
 \bibliographystyle{apalike}
 \bibliography{reference}
