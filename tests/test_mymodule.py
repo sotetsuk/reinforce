@@ -1,4 +1,4 @@
-from mypkg.mymodule import fizzbuzz
+from reinforce.mymodule import fizzbuzz
 
 
 def test_fizzbuzz() -> None:

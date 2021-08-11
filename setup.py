@@ -1,7 +1,7 @@
 from setuptools import find_packages, setup
 
 setup(
-    name="mypkg",
+    name="reinforce",
     version="0.0.1",
     description="",
     author="",
@@ -17,7 +17,6 @@ setup(
         "isort",
     ],
     packages=find_packages(),
-    entry_points={"console_scripts": "mycmd = mypkg.main:main"},
     classifiers=[
         "Programming Language :: Python :: 3.8",
         "License :: OSI Approved :: MIT License",

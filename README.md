@@ -21,12 +21,12 @@ Python package and CLI template available on both PyCharm and Visual Studio Code
 5. Attach new CI badge
 6. Attach new License
 
-### Rename `mypkg` to your package name
+### Rename `reinforce` to your package name
 
 ```sh
 $ export PKG_NAME=<YOUR PACKAGE NAME>
-$ git mv mypkg ${PKG_NAME}
-$ for f in $(git grep mypkg | cut -d ":" -f 1); do sed -i "" -e "s/mypkg/${PKG_NAME}/" ${f} ; done
+$ git mv reinforce ${PKG_NAME}
+$ for f in $(git grep reinforce | cut -d ":" -f 1); do sed -i "" -e "s/reinforce/${PKG_NAME}/" ${f} ; done
 ```
 
 ### Rename `mycmd` to your command name
