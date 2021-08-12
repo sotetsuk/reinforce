@@ -29,34 +29,45 @@ We summarize the famous REINFORCE algorithm variants.
 \section{Notation}
 Sutton book~\cite{Sutton2018-ij}.
 
+Assumes Episodic (finite horizon) MDP.
+
+\begin{itemize}
+	\item Discount factor: $\gamma = 1$
+\end{itemize}
+
+The reinforcement learning objective is defined by:
+
+\begin{eqnarray}
+J(\theta) := \mathbb{E}_{(s_1, a_1, \ldots, s_T, a_T) \sim p_\theta(s_1, a_1, \ldots, s_T, a_T)} \biggl[ \sum_{t=1}^{T} r(s_t, a_t) \biggr].
+\end{eqnarray}
+
 \section{REINFORCE variants}
 
-Policy gradient $\nabla_\theta J(\theta)$ is defined by
+Policy gradient $\nabla_\theta J(\theta)$ is derived as
 
 \begin{eqnarray}
 \nabla_\theta J(\theta) 
-= \mathbb{E} \Biggl[ \nabla_\theta \log \pi_\theta (a|s) \,\sum_{t^\prime=1}^T r(s, a) \Biggr]
+= \mathbb{E}_{(s_1, a_1, \ldots, s_T, a_T) \sim p_\theta(s_1, a_1, \ldots, s_T, a_T)} \Biggl[ \Biggl(\sum_{t^\prime=1}^{T} \nabla_\theta \log \pi_\theta (a_{t^\prime}|s_{t^\prime}) \Biggr) \Biggl( \sum_{t=1}^T r(s_t, a_t) \Biggr) \Biggr].
 \end{eqnarray}
 
 \subsection{Vanilla REINFORCE}
 
 \begin{eqnarray}
 \nabla_\theta J(\theta) 
-&\approx& \frac{1}{N} \sum_{n=1}^{N} \sum_{t=1}^{T} \Biggl(\, \sum_{t^\prime=1}^T r(s_{n, t^\prime}, a_{n, t^\prime}) \Biggr) \nabla_\theta \log \pi_\theta (a_{n, t}|s_{n, t}) \\
-&=& \frac{1}{N} \sum_{n=1}^{N} \Biggl(\, \sum_{t^\prime=1}^T r(s_{n, t^\prime}, a_{n, t^\prime}) \Biggr)\sum_{t=1}^{T} \nabla_\theta \log \pi_\theta (a_{n, t}|s_{n, t}) \\
-&=& \frac{1}{N} \sum_{n=1}^{N} \mathcal{R}_n \sum_{t=1}^{T} \nabla_\theta \log \pi_\theta (a_{n, t}|s_{n, t}) 
+&\approx& \frac{1}{N} \sum_{n=1}^{N} \Biggl( \sum_{t^\prime=1}^{T} \nabla_\theta \log \pi_\theta (a_{n, t^\prime}|s_{n, t^\prime}) \Biggr) \Biggl( \sum_{t=1}^T r(s_{n, t}, a_{n, t}) \Biggr) \\
+&=& \frac{1}{N} \sum_{n=1}^{N} \mathcal{R}_n \sum_{t^\prime=1}^{T} \nabla_\theta \log \pi_\theta (a_{n, t^\prime}|s_{n, t^\prime}) 
 \end{eqnarray}
-where $\mathcal{R}_{n} = \sum_{t^\prime=1}^T r(s_{n, t^\prime}, a_{n, t^\prime})$.
+where $\mathcal{R}_{n} = \sum_{t=1}^T r(s_{n, t}, a_{n, t})$.
 
 \subsection{REINFORCE with Future Return}
 
 \begin{eqnarray}
 \nabla_\theta J(\theta) 
-&\approx& \frac{1}{N} \sum_{n=1}^{N} \sum_{t=1}^{T}  \Biggl(\, \sum_{{\color{red}{t^\prime=t}}}^{T} r(s_{n, t^\prime}, a_{n, t^\prime}) \Biggr) \nabla_\theta \log \pi_\theta (a_{n, t}|s_{n, t})\\
-&=& \frac{1}{N} \sum_{n=1}^{N} \sum_{t=1}^{T} \mathcal{R}_{n, {\color{red}{t}}} \nabla_\theta \log \pi_\theta (a_{n, t}|s_{n, t}) 
+&\approx& \frac{1}{N} \sum_{n=1}^{N} \Biggl( \sum_{t^\prime=1}^{T} \nabla_\theta \log \pi_\theta (a_{n, t^\prime}|s_{n, t^\prime}) \Biggl(\, \sum_{{\color{red}{t=t^\prime}}}^{T} r(s_{n, t}, a_{n, t}) \Biggr) \Biggr)  \\
+&=& \frac{1}{N} \sum_{n=1}^{N} \sum_{t^\prime=1}^{T} \mathcal{R}_{n, {\color{red}{t^\prime}}} \nabla_\theta \log \pi_\theta (a_{n, t^\prime}|s_{n, t^\prime}) 
 \end{eqnarray}
 
-where, $\mathcal{R}_{n, t} = \sum_{t^\prime=t}^T r(s_{n, t^\prime}, a_{n, t^\prime})$.
+where, $\mathcal{R}_{n, t^\prime} = \sum_{t=t^\prime}^T r(s_{n, t}, a_{n, t})$.
 
 
 \subsection{REINFORCE with Entropy Bonus}
@@ -64,14 +75,14 @@ where, $\mathcal{R}_{n, t} = \sum_{t^\prime=t}^T r(s_{n, t^\prime}, a_{n, t^\pri
 
 \begin{eqnarray}
 \nabla_\theta J(\theta) 
-\approx \frac{1}{N} \sum_{n=1}^{N} \Biggl(\mathcal{R}_n {\color{red}{- \frac{1}{N} \sum_{n^\prime=1}^N \mathcal{R}_n }} \Biggr)\sum_{t=1}^{T} \nabla_\theta \log \pi_\theta (a_{n, t}|s_{n, t}) 
+\approx \frac{1}{N} \sum_{n=1}^{N} \Biggl(\mathcal{R}_n {\color{red}{- \frac{1}{N} \sum_{n^\prime=1}^N \mathcal{R}_n }} \Biggr)\sum_{t^\prime=1}^{T} \nabla_\theta \log \pi_\theta (a_{n, t^\prime}|s_{n, t^\prime}) 
 \end{eqnarray}
 
 For the future return case, 
 
 \begin{eqnarray}
 \nabla_\theta J(\theta) 
-\approx \frac{1}{N} \sum_{n=1}^{N} \sum_{t=1}^{T} \Biggl(\mathcal{R}_{n, t} {\color{red}{- \frac{1}{N} \sum_{n^\prime=1}^N \mathcal{R}_{n^\prime, t} }} \Biggr)  \nabla_\theta \log \pi_\theta (a_{n, t}|s_{n, t}) 
+\approx \frac{1}{N} \sum_{n=1}^{N} \sum_{t^\prime=1}^{T} \Biggl(\mathcal{R}_{n, t^\prime} {\color{red}{- \frac{1}{N} \sum_{n^\prime=1}^N \mathcal{R}_{n^\prime, t^\prime} }} \Biggr)  \nabla_\theta \log \pi_\theta (a_{n, t^\prime}|s_{n, t^\prime}) 
 \end{eqnarray}
 
 
