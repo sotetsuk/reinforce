@@ -9,10 +9,10 @@ from gym import logger
 from gym.vector.vector_env import VectorEnv
 from gym.vector.utils import concatenate, create_empty_array
 
-__all__ = ["SyncVectorEnv"]
+__all__ = ["EpisodicSyncVectorEnv"]
 
 
-class SyncVectorEnv(VectorEnv):
+class EpisodicSyncVectorEnv(VectorEnv):
     """Vectorized environment that serially runs multiple environments.
     Parameters
     ----------
@@ -37,7 +37,7 @@ class SyncVectorEnv(VectorEnv):
         if (observation_space is None) or (action_space is None):
             observation_space = observation_space or self.envs[0].observation_space
             action_space = action_space or self.envs[0].action_space
-        super(SyncVectorEnv, self).__init__(
+        super(EpisodicSyncVectorEnv, self).__init__(
             num_envs=len(env_fns),
             observation_space=observation_space,
             action_space=action_space,
