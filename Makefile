@@ -19,7 +19,7 @@ check:
 	poetry run black reinforce --check --diff
 	poetry run blackdoc reinforce --check
 	poetry run flake8 --config pyproject.toml --ignore E203,E501,W503 reinforce
-	poetry run mypy --config pyproject.toml reinforce
+	poetry run mypy --config pyproject.toml reinforce --ignore-missing-imports
 	poetry run isort reinforce --check --diff
 
 install:
