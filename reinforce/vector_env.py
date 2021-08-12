@@ -2,11 +2,11 @@
 # Copyright (c) 2016 OpenAI (https://openai.com)
 # https://github.com/openai/gym/blob/master/LICENSE.md
 
-import numpy as np
 from copy import deepcopy
 
-from gym.vector.vector_env import VectorEnv
+import numpy as np
 from gym.vector.utils import concatenate, create_empty_array
+from gym.vector.vector_env import VectorEnv
 
 
 class EpisodicSyncVectorEnv(VectorEnv):
@@ -26,13 +26,17 @@ class EpisodicSyncVectorEnv(VectorEnv):
         observations.
     """
 
-    def __init__(self, env_fns, observation_space=None, action_space=None, copy=True):
+    def __init__(
+        self, env_fns, observation_space=None, action_space=None, copy=True
+    ):
         self.env_fns = env_fns
         self.envs = [env_fn() for env_fn in env_fns]
         self.copy = copy
 
         if (observation_space is None) or (action_space is None):
-            observation_space = observation_space or self.envs[0].observation_space
+            observation_space = (
+                observation_space or self.envs[0].observation_space
+            )
             action_space = action_space or self.envs[0].action_space
         super(EpisodicSyncVectorEnv, self).__init__(
             num_envs=len(env_fns),
@@ -79,12 +83,14 @@ class EpisodicSyncVectorEnv(VectorEnv):
             if self._dones[i]:
                 # skip env.step because i-th env is already done
                 observation = create_empty_array(
-                    self.single_observation_space, n=None, fn=np.zeros)
+                    self.single_observation_space, n=None, fn=np.zeros
+                )
                 self._rewards[i] = 0
                 info = {}
             else:
                 observation, self._rewards[i], self._dones[i], info = env.step(
-                    action)
+                    action
+                )
             observations.append(observation)
             infos.append(info)
         self.observations = concatenate(
