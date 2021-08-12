@@ -11,22 +11,20 @@ clean:
 	find . -name "*pycache*" | xargs rm -rf
 
 format:
-	black reinforce
-	blackdoc reinforce
-	isort reinforce
+	poetry run black reinforce
+	poetry run blackdoc reinforce
+	poetry run isort reinforce
 
 check:
-	black reinforce --check --diff
-	blackdoc reinforce --check
-	flake8 --config pyproject.toml --ignore E203,E501,W503 reinforce
-	mypy --config pyproject.toml reinforce
-	isort reinforce --check --diff
+	poetry run black reinforce --check --diff
+	poetry run blackdoc reinforce --check
+	poetry run flake8 --config pyproject.toml --ignore E203,E501,W503 reinforce
+	poetry run mypy --config pyproject.toml reinforce
+	poetry run isort reinforce --check --diff
 
 install:
-	python3 setup.py install
-
-uninstall:
-	python3 -m pip uninstall reinforce -y
+	poetry install
+	poetry build
 
 test:
-	python3 -m pytest --doctest-modules
+	poetry run pytest --doctest-modules
