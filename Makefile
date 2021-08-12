@@ -23,6 +23,7 @@ check:
 	poetry run isort reinforce --check --diff
 
 install:
+	poetry install
 	poetry build
 
 test:
