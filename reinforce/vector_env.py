@@ -5,11 +5,8 @@
 import numpy as np
 from copy import deepcopy
 
-from gym import logger
 from gym.vector.vector_env import VectorEnv
 from gym.vector.utils import concatenate, create_empty_array
-
-__all__ = ["EpisodicSyncVectorEnv"]
 
 
 class EpisodicSyncVectorEnv(VectorEnv):
@@ -79,8 +76,15 @@ class EpisodicSyncVectorEnv(VectorEnv):
     def step_wait(self):
         observations, infos = [], []
         for i, (env, action) in enumerate(zip(self.envs, self._actions)):
-            observation, self._rewards[i], self._dones[i], info = env.step(
-                action)
+            if self._dones[i]:
+                # skip env.step because i-th env is already done
+                observation = create_empty_array(
+                    self.single_observation_space, n=None, fn=np.zeros)
+                self._rewards[i] = 0
+                info = {}
+            else:
+                observation, self._rewards[i], self._dones[i], info = env.step(
+                    action)
             observations.append(observation)
             infos.append(info)
         self.observations = concatenate(

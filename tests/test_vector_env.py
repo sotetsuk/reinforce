@@ -48,3 +48,42 @@ def test_EpisodicSyncVectorEnv() -> None:
     assert np.allclose(reward, [1, 0, 0])
     assert np.allclose(done, [True, False, False])
     assert info == [{}, {}, {}]
+
+    obs, reward, done, info = env.step([0, 0, 1])  # undefined, wrong, wrong
+    assert np.allclose(obs, [0, 1, 2])
+    assert np.allclose(reward, [0, 0, 0])
+    assert np.allclose(done, [True, False, False])
+    assert info == [{}, {}, {}]
+
+    obs, reward, done, info = env.step([1, 1, 0])  # undefined, correct, correct
+    assert np.allclose(obs, [0, 2, 3])
+    assert np.allclose(reward, [0, 1, 1])
+    assert np.allclose(done, [True, False, True])
+    assert info == [{}, {}, {}]
+
+    obs, reward, done, info = env.step([1, 0, 1])  # undefined, correct, undefined
+    assert np.allclose(obs, [0, 3, 0])
+    assert np.allclose(reward, [0, 1, 0])
+    assert np.allclose(done, [True, True, True])
+    assert info == [{}, {}, {}]
+
+    obs, reward, done, info = env.step([0, 1, 0])  # undefined, undefined, undefined
+    assert np.allclose(obs, [0, 0, 0])
+    assert np.allclose(reward, [0, 0, 0])
+    assert np.allclose(done, [True, True, True])
+    assert info == [{}, {}, {}]
+
+    obs, reward, done, info = env.step([1, 0, 0])  # undefined, undefined, undefined
+    assert np.allclose(obs, [0, 0, 0])
+    assert np.allclose(reward, [0, 0, 0])
+    assert np.allclose(done, [True, True, True])
+    assert info == [{}, {}, {}]
+
+    obs = env.reset()  # undefined, undefined, undefined
+    assert np.allclose(obs, [0, 0, 0])
+
+    obs, reward, done, info = env.step([1, 1, 0])  # wrong, wrong, correct
+    assert np.allclose(obs, [0, 0, 1])
+    assert np.allclose(reward, [0, 0, 1])
+    assert np.allclose(done, [False, False, False])
+    assert info == [{}, {}, {}]
