@@ -10,7 +10,11 @@ from gym.vector.vector_env import VectorEnv
 
 
 class EpisodicSyncVectorEnv(VectorEnv):
-    """Vectorized environment that serially runs multiple environments.
+    """Episodic version of gym.vector_env.SyncVectorEnv.
+    Each episode waits until all of the episodes end.
+    After the terminal state, the observation and reward will be filled with zero value
+    and done will keep True value.
+
     Parameters
     ----------
     env_fns : iterable of callable
