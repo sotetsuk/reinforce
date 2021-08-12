@@ -30,6 +30,7 @@ authors = ["Sotetsu KOYAMADA <koyamada-s@sys.i.kyoto-u.ac.jp>"]
 python = "^3.7"
 gym = "^0.18.3"
 torch = "^1.9.0"
+numpy = "^1.21.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.4"
