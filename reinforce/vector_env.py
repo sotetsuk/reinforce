@@ -1,3 +1,7 @@
+# This implementation is based on a fork from github.com/openai/gym
+# Copyright (c) 2016 OpenAI (https://openai.com)
+# https://github.com/openai/gym/blob/master/LICENSE.md
+
 import numpy as np
 from copy import deepcopy
 
