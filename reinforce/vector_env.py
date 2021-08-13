@@ -9,6 +9,10 @@ from gym.vector.utils import concatenate, create_empty_array
 from gym.vector.vector_env import VectorEnv
 
 
+class EpisodicAsyncVectorEnv(VectorEnv):
+    pass
+
+
 class EpisodicSyncVectorEnv(VectorEnv):
     """Episodic version of gym.vector_env.SyncVectorEnv.
     Each episode waits until all of the episodes end.
