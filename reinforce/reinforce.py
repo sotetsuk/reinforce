@@ -36,9 +36,13 @@ class REINFORCE:
 
     def compute_neg_log_prob(self):
         seq_len = len(self._logits_seq)
-        logits = torch.cat(self._logits_seq)  # (num_envs * max_seq_len, num_actions)
+        logits = torch.cat(
+            self._logits_seq
+        )  # (num_envs * max_seq_len, num_actions)
         actions = torch.cat(self._action_seq)  # (num_envs * max_seq_len)
-        neg_log_probs = cross_entropy(logits, actions)  # (num_envs * max_seq_len)
+        neg_log_probs = cross_entropy(
+            logits, actions
+        )  # (num_envs * max_seq_len)
         neg_log_probs = torch.reshape(neg_log_probs, (seq_len, -1)).t()
         return neg_log_probs  # (num_envs, max_seq_len)
 
