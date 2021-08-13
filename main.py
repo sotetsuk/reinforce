@@ -22,7 +22,7 @@ if __name__ == "__main__":
                 [lambda: gym.make("CartPole-v1") for _ in range(10)]
             ),
             model,
-            deterministic=True,
+            deterministic=False,
             num_episodes=100,
             seeds=list(range(100)),
         )
