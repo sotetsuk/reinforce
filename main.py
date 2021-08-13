@@ -38,21 +38,10 @@ if __name__ == "__main__":
         [lambda: gym.make("CartPole-v1") for _ in range(n_envs)]
     )
 
-    class Model(nn.Module):
-        def __init__(self):
-            super(Model, self).__init__()
-            self.data = []
-
-            self.fc1 = nn.Linear(4, 128)
-            self.fc2 = nn.Linear(128, 2)
-
-        def forward(self, x):
-            x = self.fc1(x)
-            x = F.relu(x)
-            x = self.fc2(x)
-            return x
-
-    model = Model()
+    model = nn.Sequential(
+        nn.Linear(4, 128),
+        nn.ReLU(),
+        nn.Linear(128, 2))
     optimizer = optim.Adam(model.parameters(), lr=0.002)
 
     rf = reinforce.REINFORCE()
