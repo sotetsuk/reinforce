@@ -35,10 +35,12 @@ class REINFORCE:
         return R  # (n_env, max_seq_len)
 
     def compute_neg_log_prob(self):
-        neg_log_probs = []
-        for logit, a in zip(self._logits_seq, self._action_seq):
-            neg_log_probs.append(cross_entropy(logit, a))
-        return torch.stack(neg_log_probs).t()  # (n_env, max_seq_len)
+        seq_len = len(self._logits_seq)
+        logits = torch.cat(self._logits_seq)  # (num_envs * max_seq_len, num_actions)
+        actions = torch.cat(self._action_seq)  # (num_envs * max_seq_len)
+        neg_log_probs = cross_entropy(logits, actions)  # (num_envs * max_seq_len)
+        neg_log_probs = torch.reshape(neg_log_probs, (seq_len, -1)).t()
+        return neg_log_probs  # (num_envs, max_seq_len)
 
     def compute_loss(self, R, b, neg_log_prob, mask):
         return ((R - b) * neg_log_prob * mask).sum(dim=1).mean(dim=0)
@@ -54,10 +56,10 @@ class REINFORCE:
         optimizer.zero_grad()
 
         # make batch
-        R = self.compute_return()  # (n_env, max_seq_len)
-        neg_log_prob = self.compute_neg_log_prob()  # (n_env, max_seq_len)
+        R = self.compute_return()  # (num_env, max_seq_len)
+        neg_log_prob = self.compute_neg_log_prob()  # (num_env, max_seq_len)
         b = self.compute_baseline()
-        mask = torch.stack(self._masks_seq).t()  # (n_env, max_seq_len)
+        mask = torch.stack(self._masks_seq).t()  # (num_env, max_seq_len)
 
         # calculate loss
         loss = self.compute_loss(R, b, neg_log_prob, mask)
@@ -83,15 +85,15 @@ class REINFORCE:
         n_steps = 0
         while n_steps < n_steps_limit:
             self.n_episodes += num_envs
-            observations = env.reset()  # shape = (num_envs, obs_dim)
+            observations = env.reset()  # (num_envs, obs_dim)
             dones = [False for _ in range(num_envs)]
             while not all(dones):
                 logits = model(
                     torch.from_numpy(observations).float()
-                )  # shape = (num_envs, action_dim)
+                )  # (num_envs, action_dim)
                 actions = Categorical(
                     logits=logits
-                ).sample()  # shape = (num_envs, action_dim)
+                ).sample()  # (num_envs, action_dim)
                 n_steps += sum([not done for done in dones])
                 self.n_steps += sum([not done for done in dones])
                 observations, rewards, dones, info = env.step(actions.numpy())
