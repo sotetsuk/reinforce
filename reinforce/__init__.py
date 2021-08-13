@@ -1,6 +1,6 @@
 from reinforce.reinforce import (
     REINFORCE,
-    BatchAverageBaselineMixin,
+    BatchAvgBaselineMixin,
     FutureRewardMixin,
 )
 from reinforce.vector_env import EpisodicAsyncVectorEnv, EpisodicSyncVectorEnv
@@ -8,7 +8,7 @@ from reinforce.vector_env import EpisodicAsyncVectorEnv, EpisodicSyncVectorEnv
 __all__ = [
     "REINFORCE",
     "FutureRewardMixin",
-    "BatchAverageBaselineMixin",
+    "BatchAvgBaselineMixin",
     "EpisodicAsyncVectorEnv",
     "EpisodicSyncVectorEnv",
 ]

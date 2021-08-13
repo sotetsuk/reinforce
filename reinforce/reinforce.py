@@ -112,7 +112,7 @@ class FutureRewardMixin:
         return R  # (n_env, max_seq_len)
 
 
-class BatchAverageBaselineMixin:
+class BatchAvgBaselineMixin:
     def compute_loss(self):
         mask = torch.stack(self._masks_seq).t()  # (num_env, max_seq_len)
         R = self.compute_return() * mask  # (num_env, max_seq_len)

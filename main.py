@@ -17,7 +17,7 @@ if __name__ == "__main__":
     # rf = reinforce.REINFORCE()
     class RF(
         reinforce.FutureRewardMixin,
-        reinforce.BatchAverageBaselineMixin,
+        reinforce.BatchAvgBaselineMixin,
         reinforce.REINFORCE,
     ):
         def __init__(self):
