@@ -1,18 +1,15 @@
-from typing import List
-
 import gym
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from gym.vector.vector_env import VectorEnv
 from torch.distributions import Categorical
 
 import reinforce
 
 
 def evaluate(
-    env: VectorEnv,
+    env: gym.Env,
     model: nn.Module,
     deterministic: bool = False,
     num_episodes=100,
@@ -32,7 +29,7 @@ def evaluate(
             obs, r, done, info = env.step(action)
             R += r
         R_seq.append(R)
-    return torch.FloatTensor(R_seq).mean().item()
+    return float(torch.FloatTensor(R_seq).mean().item())
 
 
 if __name__ == "__main__":

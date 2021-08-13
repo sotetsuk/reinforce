@@ -1,9 +1,7 @@
 from typing import List
 
-import gym
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 from gym.vector.vector_env import VectorEnv
 from torch.distributions import Categorical
@@ -82,7 +80,7 @@ class REINFORCE:
         env: VectorEnv,
         model: nn.Module,
         optimizer: optim.Optimizer,
-        n_steps_limit: int = 1e5,
+        n_steps_limit: int = 100_000,
     ):
         model.train()
         for _ in range(100):
