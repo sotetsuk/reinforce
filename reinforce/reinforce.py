@@ -10,8 +10,7 @@ cross_entropy = nn.CrossEntropyLoss(reduction="none")
 
 
 class REINFORCE:
-    def __init__(self, gamma=1.0):
-        self.gamma = gamma  # TODO: use gamma
+    def __init__(self):
         self.n_steps: int = 0
         self.n_episodes: int = 0
         self.n_batch_updates: int = 0
@@ -51,18 +50,9 @@ class REINFORCE:
 
     def update_gradient(self, optimizer: optim.Optimizer):
         self.n_batch_updates += 1
+
         optimizer.zero_grad()
-
-        # make batch
-        R = self.compute_return()  # (num_env, max_seq_len)
-        neg_log_prob = self.compute_neg_log_prob()  # (num_env, max_seq_len)
-        b = self.compute_baseline()
-        mask = torch.stack(self._masks_seq).t()  # (num_env, max_seq_len)
-
-        # calculate loss
-        loss = self.compute_loss(R, b, neg_log_prob, mask)
-
-        # update grad
+        loss = self.compute_loss()
         loss.backward()
         optimizer.step()
 
@@ -71,13 +61,21 @@ class REINFORCE:
         self._logits_seq = []
         self._masks_seq = []
 
+    def compute_loss(self):
+        R = self.compute_return()  # (num_env, max_seq_len)
+        b = self.compute_baseline()
+        neg_log_prob = self.compute_neg_log_prob()  # (num_env, max_seq_len)
+        mask = torch.stack(self._masks_seq).t()  # (num_env, max_seq_len)
+
+        return ((R - b) * neg_log_prob * mask).sum(dim=1).mean(dim=0)
+
     def compute_return(self):
+        seq_len = len(self._rewards_seq)
         R = (
-            torch.stack(self._rewards_seq)
-            .t()
-            .flip(dims=(1,))
-            .cumsum(dim=1)
-            .flip(dims=(1,))
+            torch.stack(self._rewards_seq)  # (max_seq_len, num_env)
+            .sum(dim=0)  # (n_env)
+            .repeat((seq_len, 1))  # (max_seq_len, num_env)
+            .t()  # (num_env, max_seq_len)
         )
         return R  # (n_env, max_seq_len)
 
@@ -96,11 +94,22 @@ class REINFORCE:
         neg_log_probs = torch.reshape(neg_log_probs, (seq_len, -1)).t()
         return neg_log_probs  # (num_envs, max_seq_len)
 
-    def compute_loss(self, R, b, neg_log_prob, mask):
-        return ((R - b) * neg_log_prob * mask).sum(dim=1).mean(dim=0)
-
     def _push_data(self, logits, actions, rewards, dones):
         self._rewards_seq.append(torch.from_numpy(rewards).float())
         self._action_seq.append(actions)
         self._logits_seq.append(logits)
         self._masks_seq.append(1.0 - torch.from_numpy(dones).float())
+
+
+class FutureRewardMixin(object):
+    _rewards_seq: List[torch.Tensor]
+
+    def compute_return(self):
+        R = (
+            torch.stack(self._rewards_seq)
+            .t()  # (n_env, max_seq_len)
+            .flip(dims=(1,))
+            .cumsum(dim=1)
+            .flip(dims=(1,))
+        )
+        return R  # (n_env, max_seq_len)
