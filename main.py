@@ -14,18 +14,8 @@ if __name__ == "__main__":
     model = nn.Sequential(nn.Linear(4, 128), nn.ReLU(), nn.Linear(128, 2))
     optimizer = optim.Adam(model.parameters(), lr=0.002)
 
-    # rf = reinforce.REINFORCE()
-    class RF(
-        reinforce.FutureRewardMixin,
-        reinforce.BatchAvgBaselineMixin,
-        reinforce.REINFORCE,
-    ):
-        def __init__(self):
-            super().__init__()
-
-    rf = RF()
-
-    while rf.n_steps < 300_000:
+    rf = reinforce.REINFORCE()
+    while rf.n_steps < 100_000:
         rf.train(env, model, optimizer, n_steps_limit=10_000)
         score = reinforce.utils.evaluate(
             reinforce.EpisodicSyncVectorEnv(
