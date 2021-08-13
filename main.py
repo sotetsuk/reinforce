@@ -33,7 +33,7 @@ def evaluate(
 
 
 if __name__ == "__main__":
-    n_envs = 3
+    n_envs = 10
     env = reinforce.EpisodicSyncVectorEnv(
         [lambda: gym.make("CartPole-v1") for _ in range(n_envs)]
     )
@@ -53,11 +53,14 @@ if __name__ == "__main__":
             return x
 
     model = Model()
-    optimizer = optim.Adam(model.parameters(), lr=0.0002)
+    optimizer = optim.Adam(model.parameters(), lr=0.002)
 
     rf = reinforce.REINFORCE()
-    for i in range(100):
-        rf.train(env, model, optimizer)
-        print(evaluate(gym.make("CartPole-v1"), model))
+    while rf.n_episodes < 10000:
+        rf.train(env, model, optimizer, n_steps_limit=1000)
+        score = evaluate(gym.make("CartPole-v1"), model)
+        print(
+            f"n_steps={rf.n_steps:8d}\tn_episodes={rf.n_episodes:8d}\tn_batch_updates={rf.n_batch_updates:8d}\tscore={score}"
+        )
 
     env.close()
