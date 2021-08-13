@@ -56,8 +56,8 @@ if __name__ == "__main__":
     optimizer = optim.Adam(model.parameters(), lr=0.002)
 
     rf = reinforce.REINFORCE()
-    while rf.n_episodes < 10000:
-        rf.train(env, model, optimizer, n_steps_limit=1000)
+    while rf.n_steps < 100_000:
+        rf.train(env, model, optimizer, n_steps_limit=10_000)
         score = evaluate(gym.make("CartPole-v1"), model, num_episodes=1)
         print(
             f"n_steps={rf.n_steps:8d}\tn_episodes={rf.n_episodes:8d}\tn_batch_updates={rf.n_batch_updates:8d}\tscore={score}"
