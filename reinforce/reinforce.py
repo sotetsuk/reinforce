@@ -1,3 +1,4 @@
+import copy
 from typing import List
 
 import torch
@@ -34,6 +35,7 @@ class REINFORCE:
             self.n_episodes += num_envs
             observations = env.reset()  # (num_envs, obs_dim)
             dones = [False for _ in range(num_envs)]
+            mask = torch.FloatTensor([1.0 for _ in range(num_envs)])
             while not all(dones):
                 logits = model(
                     torch.from_numpy(observations).float()
@@ -44,7 +46,8 @@ class REINFORCE:
                 n_steps += sum([not done for done in dones])
                 self.n_steps += sum([not done for done in dones])
                 observations, rewards, dones, info = env.step(actions.numpy())
-                self._push_data(logits, actions, rewards, dones)
+                self._push_data(logits, actions, rewards, mask)
+                mask = 1.0 - torch.from_numpy(dones).float()
 
             self.update_gradient(optimizer)
 
@@ -62,12 +65,11 @@ class REINFORCE:
         self._masks_seq = []
 
     def compute_loss(self):
-        R = self.compute_return()  # (num_env, max_seq_len)
-        b = self.compute_baseline()
-        neg_log_prob = self.compute_neg_log_prob()  # (num_env, max_seq_len)
         mask = torch.stack(self._masks_seq).t()  # (num_env, max_seq_len)
+        R = self.compute_return() * mask  # (num_env, max_seq_len)
+        neg_log_p = self.compute_neg_log_p() * mask  # (num_env, max_seq_len)
 
-        return ((R - b) * neg_log_prob * mask).sum(dim=1).mean(dim=0)
+        return (R * neg_log_p).sum(dim=1).mean(dim=0)
 
     def compute_return(self):
         seq_len = len(self._rewards_seq)
@@ -79,10 +81,7 @@ class REINFORCE:
         )
         return R  # (n_env, max_seq_len)
 
-    def compute_baseline(self):
-        return 0
-
-    def compute_neg_log_prob(self):
+    def compute_neg_log_p(self):
         seq_len = len(self._logits_seq)
         logits = torch.cat(
             self._logits_seq
@@ -94,16 +93,14 @@ class REINFORCE:
         neg_log_probs = torch.reshape(neg_log_probs, (seq_len, -1)).t()
         return neg_log_probs  # (num_envs, max_seq_len)
 
-    def _push_data(self, logits, actions, rewards, dones):
+    def _push_data(self, logits, actions, rewards, mask):
         self._rewards_seq.append(torch.from_numpy(rewards).float())
         self._action_seq.append(actions)
         self._logits_seq.append(logits)
-        self._masks_seq.append(1.0 - torch.from_numpy(dones).float())
+        self._masks_seq.append(copy.deepcopy(mask))
 
 
-class FutureRewardMixin(object):
-    _rewards_seq: List[torch.Tensor]
-
+class FutureRewardMixin:
     def compute_return(self):
         R = (
             torch.stack(self._rewards_seq)
@@ -113,3 +110,28 @@ class FutureRewardMixin(object):
             .flip(dims=(1,))
         )
         return R  # (n_env, max_seq_len)
+
+
+class BatchAverageBaselineMixin:
+    def compute_loss(self):
+        mask = torch.stack(self._masks_seq).t()  # (num_env, max_seq_len)
+        R = self.compute_return() * mask  # (num_env, max_seq_len)
+        neg_log_p = self.compute_neg_log_p() * mask  # (num_env, max_seq_len)
+        b = self.compute_baseline(R, mask)
+
+        # debiasing factor
+        num_envs = R.size(0)
+        assert num_envs > 1
+        scale = num_envs / (num_envs - 1)
+
+        return scale * ((R - b) * neg_log_p * mask).sum(dim=1).mean(dim=0)
+
+    def compute_baseline(self, R, mask):
+        R = R.detach()
+        mask = mask.detach()
+        num_envs = R.size(0)
+        R_sum = R.sum(dim=0)  # (max_seq_len)
+        n_samples_per_time = mask.sum(dim=0)  # (max_seq_len)
+        assert (n_samples_per_time == 0).sum() == 0
+        avg = R_sum / n_samples_per_time  # (max_seq_len)
+        return avg.repeat((num_envs, 1))  # (num_envs, seq_len)
