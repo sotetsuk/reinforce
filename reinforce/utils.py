@@ -43,12 +43,7 @@ def evaluate_env(
         done = False
         R = 0.0
         while not done:
-            logits = model(torch.FloatTensor([obs]))  # shape = (1, obs_dim)
-            dist = Categorical(logits=logits)
-            if deterministic:
-                action = int(dist.probs.argmax(dim=-1).item())
-            else:
-                action = dist.sample().item()
+            action = act(model, obs, deterministic)
             obs, r, done, info = env.step(action)
             R += r
         R_seq.append(R)
@@ -77,18 +72,25 @@ def evaluate_vector_env(
         done = [False for _ in range(num_envs)]
         R = np.zeros(num_envs)
         while not all(done):
-            logits = model(
-                torch.from_numpy(obs).float()
-            )  # shape = (num_envs, obs_size)
-            dist = Categorical(logits=logits)
-            if deterministic:
-                actions = dist.probs.argmax(dim=-1)
-            else:
-                actions = dist.sample()
-            obs, r, done, info = env.step(actions.numpy())
+            actions = act(model, obs, deterministic)
+            obs, r, done, info = env.step(actions)
             R += r  # If some episode is terminated, all r is zero afterwards.
         R_seq.append(R)
 
     score = np.concatenate(R_seq)
     assert score.shape[0] == num_episodes
     return float(score.mean())
+
+
+def act(
+    model: nn.Module, obs: np.ndarray, deterministic: bool = False
+) -> Union[int, np.ndarray]:
+    # TODO: continuous action space
+    o = torch.from_numpy(obs).float()
+    if o.dim() == 1:  # make batch
+        o = torch.unsqueeze(o, 0)  # (1, obs_dim)
+    logits = model(o)
+    dist = Categorical(logits=logits)
+    a = dist.probs.argmax(dim=-1) if deterministic else dist.sample()
+    a = a.item() if a.size(0) == 1 else a.numpy()
+    return a
