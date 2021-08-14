@@ -86,10 +86,10 @@ def act(
     model: nn.Module, obs: np.ndarray, deterministic: bool = False
 ) -> Union[int, np.ndarray]:
     # TODO: continuous action space
-    obs = torch.from_numpy(obs).float()
-    if obs.dim() == 1:  # make batch
-        obs = torch.unsqueeze(obs, 0)  # (1, obs_dim)
-    logits = model(obs)
+    o = torch.from_numpy(obs).float()
+    if o.dim() == 1:  # make batch
+        o = torch.unsqueeze(o, 0)  # (1, obs_dim)
+    logits = model(o)
     dist = Categorical(logits=logits)
     a = dist.probs.argmax(dim=-1) if deterministic else dist.sample()
     a = a.item() if a.size(0) == 1 else a.numpy()
