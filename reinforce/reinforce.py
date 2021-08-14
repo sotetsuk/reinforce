@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import Dict, List
 
 import torch
 import torch.nn as nn
@@ -41,7 +41,9 @@ class REINFORCE:
                 n_steps += sum([not done for done in dones])
                 self.n_steps += sum([not done for done in dones])
                 observations, rewards, dones, info = env.step(actions.numpy())
-                self.push(logits=logits, actions=actions, rewards=rewards, mask=mask)
+                self.push(
+                    logits=logits, actions=actions, rewards=rewards, mask=mask
+                )
                 mask = 1.0 - torch.from_numpy(dones).float()
 
             self.update_gradient(optimizer)
