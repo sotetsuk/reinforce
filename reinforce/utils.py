@@ -44,11 +44,11 @@ def evaluate_env(
         R = 0.0
         while not done:
             logits = model(torch.FloatTensor([obs]))  # shape = (1, obs_dim)
-            probs = Categorical(logits=logits)
+            dist = Categorical(logits=logits)
             if deterministic:
-                action = int(probs.probs.argmax(dim=-1).item())
+                action = int(dist.probs.argmax(dim=-1).item())
             else:
-                action = probs.sample().item()
+                action = dist.sample().item()
             obs, r, done, info = env.step(action)
             R += r
         R_seq.append(R)
@@ -80,11 +80,11 @@ def evaluate_vector_env(
             logits = model(
                 torch.from_numpy(obs).float()
             )  # shape = (num_envs, obs_size)
-            probs = Categorical(logits=logits)
+            dist = Categorical(logits=logits)
             if deterministic:
-                actions = probs.probs.argmax(dim=-1)
+                actions = dist.probs.argmax(dim=-1)
             else:
-                actions = probs.sample()
+                actions = dist.sample()
             obs, r, done, info = env.step(actions.numpy())
             R += r  # If some episode is terminated, all r is zero afterwards.
         R_seq.append(R)

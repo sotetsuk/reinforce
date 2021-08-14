@@ -40,32 +40,29 @@ class REINFORCE:
             logits = model(
                 torch.from_numpy(observations).float()
             )  # (num_envs, action_dim)
-            actions = Categorical(
-                logits=logits
-            ).sample()  # (num_envs, action_dim)
+            dist = Categorical(logits=logits)
+            actions = dist.sample()  # (num_envs)
+            log_p = dist.log_prob(actions)  # (num_envs)
             self.n_steps += sum([not done for done in dones])
             observations, rewards, dones, info = env.step(actions.numpy())
-            self.push(
-                logits=logits, actions=actions, rewards=rewards, mask=mask
-            )
+            self.push(log_p=log_p, actions=actions, rewards=rewards, mask=mask)
             mask = 1.0 - torch.from_numpy(dones).float()
 
         self.update_gradient(opt)
 
     def update_gradient(self, opt: optim.Optimizer):
         self.n_batch_updates += 1
-
         opt.zero_grad()
         loss = self.compute_loss()
         loss.backward()
         opt.step()
 
     def compute_loss(self):
-        mask = torch.stack(self.data["mask"]).t()  # (num_env, max_seq_len)
-        R = self.compute_return() * mask  # (num_env, max_seq_len)
-        neg_log_p = self.compute_neg_log_p() * mask  # (num_env, max_seq_len)
+        mask = torch.stack(self.data["mask"]).t()  # (n_env, seq_len)
+        R = self.compute_return() * mask  # (n_env, seq_len)
+        log_p = torch.stack(self.data["log_p"]).t()  # (n_env, seq_len)
 
-        return (R * neg_log_p).sum(dim=1).mean(dim=0)
+        return -(R * log_p).sum(dim=1).mean(dim=0)
 
     def compute_return(self):
         seq_len = len(self.data["rewards"])
@@ -76,18 +73,6 @@ class REINFORCE:
             .t()  # (num_env, max_seq_len)
         )
         return R  # (n_env, max_seq_len)
-
-    def compute_neg_log_p(self):
-        seq_len = len(self.data["logits"])
-        logits = torch.cat(
-            self.data["logits"]
-        )  # (num_envs * max_seq_len, num_actions)
-        actions = torch.cat(self.data["actions"])  # (num_envs * max_seq_len)
-        neg_log_probs = cross_entropy(
-            logits, actions
-        )  # (num_envs * max_seq_len)
-        neg_log_probs = torch.reshape(neg_log_probs, (seq_len, -1)).t()
-        return neg_log_probs  # (num_envs, max_seq_len)
 
     def push(self, **kwargs):
         for k, v in kwargs.items():
@@ -114,7 +99,7 @@ class BatchAvgBaselineMixin:
     def compute_loss(self):
         mask = torch.stack(self.data["mask"]).t()  # (num_env, max_seq_len)
         R = self.compute_return() * mask  # (num_env, max_seq_len)
-        neg_log_p = self.compute_neg_log_p() * mask  # (num_env, max_seq_len)
+        log_p = torch.stack(self.data["log_p"]).t()  # (n_env, seq_len)
         b = self.compute_baseline(R, mask)
 
         # debiasing factor
@@ -122,7 +107,7 @@ class BatchAvgBaselineMixin:
         assert num_envs > 1
         scale = num_envs / (num_envs - 1)
 
-        return scale * ((R - b) * neg_log_p * mask).sum(dim=1).mean(dim=0)
+        return -scale * ((R - b) * log_p * mask).sum(dim=1).mean(dim=0)
 
     def compute_baseline(self, R, mask):
         R = R.detach()
