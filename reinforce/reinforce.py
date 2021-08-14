@@ -20,13 +20,12 @@ class REINFORCE:
         self,
         env: VectorEnv,
         model: nn.Module,
-        optimizer: optim.Optimizer,
-        n_steps_limit: int = 100_000,
+        opt: optim.Optimizer,
+        n_steps_lim: int = 100_000,
     ):
         model.train()
         num_envs = env.num_envs
-        n_steps = 0
-        while n_steps < n_steps_limit:
+        while self.n_steps < n_steps_lim:
             self.n_episodes += num_envs
             observations = env.reset()  # (num_envs, obs_dim)
             dones = [False for _ in range(num_envs)]
@@ -38,7 +37,6 @@ class REINFORCE:
                 actions = Categorical(
                     logits=logits
                 ).sample()  # (num_envs, action_dim)
-                n_steps += sum([not done for done in dones])
                 self.n_steps += sum([not done for done in dones])
                 observations, rewards, dones, info = env.step(actions.numpy())
                 self.push(
@@ -46,15 +44,15 @@ class REINFORCE:
                 )
                 mask = 1.0 - torch.from_numpy(dones).float()
 
-            self.update_gradient(optimizer)
+            self.update_gradient(opt)
 
-    def update_gradient(self, optimizer: optim.Optimizer):
+    def update_gradient(self, opt: optim.Optimizer):
         self.n_batch_updates += 1
 
-        optimizer.zero_grad()
+        opt.zero_grad()
         loss = self.compute_loss()
         loss.backward()
-        optimizer.step()
+        opt.step()
 
         self.data = {}
 
