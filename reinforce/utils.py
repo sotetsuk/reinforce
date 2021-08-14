@@ -83,11 +83,10 @@ def evaluate_vector_env(
 
 
 def act(
-    model: nn.Module, obs: torch.FloatTensor, deterministic: bool = False
+    model: nn.Module, obs: np.ndarray, deterministic: bool = False
 ) -> Union[int, np.ndarray]:
     # TODO: continuous action space
-    if not isinstance(obs, torch.FloatTensor):
-        obs = torch.FloatTensor(obs)
+    obs = torch.from_numpy(obs).float()
     if obs.dim() == 1:  # make batch
         obs = torch.unsqueeze(obs, 0)  # (1, obs_dim)
     logits = model(obs)
