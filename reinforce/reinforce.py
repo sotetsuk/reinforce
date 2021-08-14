@@ -1,5 +1,4 @@
-import copy
-from typing import List
+from typing import List, Dict
 
 import torch
 import torch.nn as nn
@@ -15,11 +14,7 @@ class REINFORCE:
         self.n_steps: int = 0
         self.n_episodes: int = 0
         self.n_batch_updates: int = 0
-
-        self._rewards_seq: List[torch.Tensor] = []
-        self._action_seq: List[torch.Tensor] = []
-        self._logits_seq: List[torch.Tensor] = []
-        self._masks_seq: List[torch.Tensor] = []
+        self.data: Dict[str, List[torch.Tensor]] = {}
 
     def train(
         self,
@@ -46,7 +41,7 @@ class REINFORCE:
                 n_steps += sum([not done for done in dones])
                 self.n_steps += sum([not done for done in dones])
                 observations, rewards, dones, info = env.step(actions.numpy())
-                self._push_data(logits, actions, rewards, mask)
+                self.push(logits=logits, actions=actions, rewards=rewards, mask=mask)
                 mask = 1.0 - torch.from_numpy(dones).float()
 
             self.update_gradient(optimizer)
@@ -59,22 +54,19 @@ class REINFORCE:
         loss.backward()
         optimizer.step()
 
-        self._rewards_seq = []
-        self._action_seq = []
-        self._logits_seq = []
-        self._masks_seq = []
+        self.data = {}
 
     def compute_loss(self):
-        mask = torch.stack(self._masks_seq).t()  # (num_env, max_seq_len)
+        mask = torch.stack(self.data["mask"]).t()  # (num_env, max_seq_len)
         R = self.compute_return() * mask  # (num_env, max_seq_len)
         neg_log_p = self.compute_neg_log_p() * mask  # (num_env, max_seq_len)
 
         return (R * neg_log_p).sum(dim=1).mean(dim=0)
 
     def compute_return(self):
-        seq_len = len(self._rewards_seq)
+        seq_len = len(self.data["rewards"])
         R = (
-            torch.stack(self._rewards_seq)  # (max_seq_len, num_env)
+            torch.stack(self.data["rewards"])  # (max_seq_len, num_env)
             .sum(dim=0)  # (n_env)
             .repeat((seq_len, 1))  # (max_seq_len, num_env)
             .t()  # (num_env, max_seq_len)
@@ -82,28 +74,30 @@ class REINFORCE:
         return R  # (n_env, max_seq_len)
 
     def compute_neg_log_p(self):
-        seq_len = len(self._logits_seq)
+        seq_len = len(self.data["logits"])
         logits = torch.cat(
-            self._logits_seq
+            self.data["logits"]
         )  # (num_envs * max_seq_len, num_actions)
-        actions = torch.cat(self._action_seq)  # (num_envs * max_seq_len)
+        actions = torch.cat(self.data["actions"])  # (num_envs * max_seq_len)
         neg_log_probs = cross_entropy(
             logits, actions
         )  # (num_envs * max_seq_len)
         neg_log_probs = torch.reshape(neg_log_probs, (seq_len, -1)).t()
         return neg_log_probs  # (num_envs, max_seq_len)
 
-    def _push_data(self, logits, actions, rewards, mask):
-        self._rewards_seq.append(torch.from_numpy(rewards).float())
-        self._action_seq.append(actions)
-        self._logits_seq.append(logits)
-        self._masks_seq.append(copy.deepcopy(mask))
+    def push(self, **kwargs):
+        for k, v in kwargs.items():
+            if not isinstance(v, torch.Tensor):
+                v = torch.from_numpy(v).float()
+            if k not in self.data:
+                self.data[k] = []
+            self.data[k].append(v)
 
 
 class FutureRewardMixin:
     def compute_return(self):
         R = (
-            torch.stack(self._rewards_seq)
+            torch.stack(self.data["rewards"])
             .t()  # (n_env, max_seq_len)
             .flip(dims=(1,))
             .cumsum(dim=1)
@@ -114,7 +108,7 @@ class FutureRewardMixin:
 
 class BatchAvgBaselineMixin:
     def compute_loss(self):
-        mask = torch.stack(self._masks_seq).t()  # (num_env, max_seq_len)
+        mask = torch.stack(self.data["mask"]).t()  # (num_env, max_seq_len)
         R = self.compute_return() * mask  # (num_env, max_seq_len)
         neg_log_p = self.compute_neg_log_p() * mask  # (num_env, max_seq_len)
         b = self.compute_baseline(R, mask)
