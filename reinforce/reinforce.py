@@ -23,28 +23,34 @@ class REINFORCE:
         opt: optim.Optimizer,
         n_steps_lim: int = 100_000,
     ):
-        model.train()
-        num_envs = env.num_envs
         while self.n_steps < n_steps_lim:
-            self.n_episodes += num_envs
-            observations = env.reset()  # (num_envs, obs_dim)
-            dones = [False for _ in range(num_envs)]
-            mask = torch.FloatTensor([1.0 for _ in range(num_envs)])
-            while not all(dones):
-                logits = model(
-                    torch.from_numpy(observations).float()
-                )  # (num_envs, action_dim)
-                actions = Categorical(
-                    logits=logits
-                ).sample()  # (num_envs, action_dim)
-                self.n_steps += sum([not done for done in dones])
-                observations, rewards, dones, info = env.step(actions.numpy())
-                self.push(
-                    logits=logits, actions=actions, rewards=rewards, mask=mask
-                )
-                mask = 1.0 - torch.from_numpy(dones).float()
+            self.n_episodes += env.num_envs
+            self.train_episode(env, model, opt)
 
-            self.update_gradient(opt)
+    def train_episode(
+        self, env: VectorEnv, model: nn.Module, opt: optim.Optimizer
+    ):
+        self.data = {}
+        model.train()
+
+        observations = env.reset()  # (num_envs, obs_dim)
+        dones = [False for _ in range(env.num_envs)]
+        mask = torch.FloatTensor([1.0 for _ in range(env.num_envs)])
+        while not all(dones):
+            logits = model(
+                torch.from_numpy(observations).float()
+            )  # (num_envs, action_dim)
+            actions = Categorical(
+                logits=logits
+            ).sample()  # (num_envs, action_dim)
+            self.n_steps += sum([not done for done in dones])
+            observations, rewards, dones, info = env.step(actions.numpy())
+            self.push(
+                logits=logits, actions=actions, rewards=rewards, mask=mask
+            )
+            mask = 1.0 - torch.from_numpy(dones).float()
+
+        self.update_gradient(opt)
 
     def update_gradient(self, opt: optim.Optimizer):
         self.n_batch_updates += 1
@@ -53,8 +59,6 @@ class REINFORCE:
         loss = self.compute_loss()
         loss.backward()
         opt.step()
-
-        self.data = {}
 
     def compute_loss(self):
         mask = torch.stack(self.data["mask"]).t()  # (num_env, max_seq_len)
