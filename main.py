@@ -1,35 +1,40 @@
 import gym
+import torch
 import torch.nn as nn
 import torch.optim as optim
 
-import reinforce
-import reinforce.utils
+import reinforce as rf
+from reinforce.utils import evaluate
 
-if __name__ == "__main__":
-    n_envs = 10
-    env = reinforce.EpisodicSyncVectorEnv(
-        [lambda: gym.make("CartPole-v1") for _ in range(n_envs)]
-    )
 
-    model = nn.Sequential(nn.Linear(4, 128), nn.ReLU(), nn.Linear(128, 2))
-    opt = optim.Adam(model.parameters(), lr=0.002)
+class REINFORCEWithFutureReturnAndBatchAvgBaseline(
+    rf.FutureRewardMixin, rf.BatchAvgBaselineMixin, rf.REINFORCE
+):
+    def __init__(self):
+        super().__init__()
 
-    rf = reinforce.REINFORCE()
-    n_train = 0
-    while rf.n_steps < 100_000:
-        rf.train(env, model, opt, n_steps_lim=n_train * 10_000)
-        score = reinforce.utils.evaluate(
-            reinforce.EpisodicSyncVectorEnv(
-                [lambda: gym.make("CartPole-v1") for _ in range(10)]
-            ),
-            model,
-            deterministic=False,
-            num_episodes=100,
-            seeds=list(range(100)),
-        )
-        print(
-            f"n_steps={rf.n_steps:8d}\tn_episodes={rf.n_episodes:8d}\tn_batch_updates={rf.n_batch_updates:8d}\tscore={score}"
-        )
-        n_train += 1
+    def train_episode(self, env, model, opt):
+        super().train_episode(env, model, opt)
+        if self.n_episodes % 100 == 0:
+            R = torch.stack(self.data["rewards"]).sum(dim=0).mean()
+            print(
+                f"n_steps:{self.n_steps:6d}, n_episodes:{self.n_episodes:4d}, R:{R:.3f}"
+            )
 
-    env.close()
+
+env = rf.EpisodicSyncVectorEnv(
+    [lambda: gym.make("CartPole-v1") for _ in range(10)]
+)
+model = nn.Sequential(nn.Linear(4, 64), nn.ReLU(), nn.Linear(64, 2))
+opt = optim.Adam(model.parameters(), lr=0.01)
+agent = REINFORCEWithFutureReturnAndBatchAvgBaseline()
+
+agent.train(env, model, opt, n_steps_lim=100_000)
+score = evaluate(
+    rf.EpisodicSyncVectorEnv(
+        [lambda: gym.make("CartPole-v1") for _ in range(10)]
+    ),
+    model,
+    deterministic=True,
+)
+print(f"Final evaluation score = {score:.3f}")
