@@ -1,8 +1,12 @@
 ![build](https://github.com/sotetsuk/reinforce/workflows/build/badge.svg)
 
 # REINFORCE
+A simple REINFORCE algorithm implementation in PyTorch.
 
-A simple REINFORCE algorithm implementation.
+## Features
+
+- Support vector enviroments for faster training
+- Easy to customize using Mixins 
 
 ## Examples
 
@@ -41,6 +45,14 @@ score = evaluate(
     deterministic=True,
 )
 print(f"Final evaluation score = {score:.3f}")
+```
+
+## Build
+Please use poetry to build
+
+```sh
+$ poetry install
+$ poetry build
 ```
 
 ## License
