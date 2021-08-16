@@ -1,4 +1,5 @@
 # Copyright (c) 2021 Sotetsu KOYAMADA
+
 # https://github.com/sotetsuk/reinforce/blob/master/LICENSE
 
 # This implementation is based on a fork from github.com/openai/gym
@@ -19,7 +20,7 @@ class EpisodicAsyncVectorEnv(VectorEnv):
 class EpisodicSyncVectorEnv(VectorEnv):
     """Episodic version of gym.vector_env.SyncVectorEnv.
     Each episode waits until all of the episodes end.
-    After the terminal state, the observation and reward will be filled with zero value
+    After the terminal state, the observation and reward will be filled with 0.
     and done will keep True value.
 
     Parameters

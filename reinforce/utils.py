@@ -1,4 +1,5 @@
 # Copyright (c) 2021 Sotetsu KOYAMADA
+
 # https://github.com/sotetsuk/reinforce/blob/master/LICENSE
 
 from typing import List, Optional, Union
