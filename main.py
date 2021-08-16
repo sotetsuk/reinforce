@@ -21,7 +21,8 @@ class REINFORCEWithFutureReturnAndBatchAvgBaseline(
         if self.n_episodes % 100 == 0:
             R = torch.stack(self.data["rewards"]).sum(dim=0).mean()
             print(
-                f"n_steps:{self.n_steps:6d}, n_episodes:{self.n_episodes:4d}, R:{R:.3f}"
+                f"step:{self.n_steps:6d}, ep:{self.n_episodes:4d}, "
+                f"R:{R:.3f}"
             )
 
 
