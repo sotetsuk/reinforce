@@ -1,6 +1,10 @@
-from reinforce.vector_env import EpisodicSyncVectorEnv
+# Copyright (c) 2021 Sotetsu KOYAMADA
+# https://github.com/sotetsuk/reinforce/blob/master/LICENSE
+
 import gym
 import numpy as np
+
+from reinforce.vector_env import EpisodicSyncVectorEnv
 
 
 class ToyEnv(gym.Env):
@@ -17,7 +21,7 @@ class ToyEnv(gym.Env):
     def step(self, action):
         reward = 0
         done = False
-        if action % 2 == self.state %2:
+        if action % 2 == self.state % 2:
             self.state += 1
             reward = 1
         if self.state == 3:
@@ -49,37 +53,37 @@ def test_EpisodicSyncVectorEnv() -> None:
     assert np.allclose(done, [True, False, False])
     assert info == [{}, {}, {}]
 
-    obs, reward, done, info = env.step([0, 0, 1])  # undefined, wrong, wrong
+    obs, reward, done, info = env.step([0, 0, 1])  # undef, wrong, wrong
     assert np.allclose(obs, [0, 1, 2])
     assert np.allclose(reward, [0, 0, 0])
     assert np.allclose(done, [True, False, False])
     assert info == [{}, {}, {}]
 
-    obs, reward, done, info = env.step([1, 1, 0])  # undefined, correct, correct
+    obs, reward, done, info = env.step([1, 1, 0])  # undef, correct, correct
     assert np.allclose(obs, [0, 2, 3])
     assert np.allclose(reward, [0, 1, 1])
     assert np.allclose(done, [True, False, True])
     assert info == [{}, {}, {}]
 
-    obs, reward, done, info = env.step([1, 0, 1])  # undefined, correct, undefined
+    obs, reward, done, info = env.step([1, 0, 1])  # undef, correct, undef
     assert np.allclose(obs, [0, 3, 0])
     assert np.allclose(reward, [0, 1, 0])
     assert np.allclose(done, [True, True, True])
     assert info == [{}, {}, {}]
 
-    obs, reward, done, info = env.step([0, 1, 0])  # undefined, undefined, undefined
+    obs, reward, done, info = env.step([0, 1, 0])  # undef, undef, undef
     assert np.allclose(obs, [0, 0, 0])
     assert np.allclose(reward, [0, 0, 0])
     assert np.allclose(done, [True, True, True])
     assert info == [{}, {}, {}]
 
-    obs, reward, done, info = env.step([1, 0, 0])  # undefined, undefined, undefined
+    obs, reward, done, info = env.step([1, 0, 0])  # undef, undef, undef
     assert np.allclose(obs, [0, 0, 0])
     assert np.allclose(reward, [0, 0, 0])
     assert np.allclose(done, [True, True, True])
     assert info == [{}, {}, {}]
 
-    obs = env.reset()  # undefined, undefined, undefined
+    obs = env.reset()  # undef, undef, undef
     assert np.allclose(obs, [0, 0, 0])
 
     obs, reward, done, info = env.step([1, 1, 0])  # wrong, wrong, correct
