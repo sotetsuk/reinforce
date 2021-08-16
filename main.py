@@ -1,3 +1,6 @@
+# Copyright (c) 2021 Sotetsu KOYAMADA
+# https://github.com/sotetsuk/reinforce/blob/master/LICENSE
+
 import gym
 import torch.nn as nn
 import torch.optim as optim

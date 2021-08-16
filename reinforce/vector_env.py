@@ -1,3 +1,6 @@
+# Copyright (c) 2021 Sotetsu KOYAMADA
+# https://github.com/sotetsuk/reinforce/blob/master/LICENSE
+
 # This implementation is based on a fork from github.com/openai/gym
 # Copyright (c) 2016 OpenAI (https://openai.com)
 # https://github.com/openai/gym/blob/master/LICENSE.md
