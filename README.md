@@ -36,9 +36,9 @@ class REINFORCEWithFutureReturnAndBatchAvgBaseline(
 env = rf.EpisodicSyncVectorEnv([lambda: gym.make("CartPole-v1") for _ in range(10)])
 model = nn.Sequential(nn.Linear(4, 64), nn.ReLU(), nn.Linear(64, 2))
 opt = optim.Adam(model.parameters(), lr=0.01)
-agent = REINFORCEWithFutureReturnAndBatchAvgBaseline()
+algo = REINFORCEWithFutureReturnAndBatchAvgBaseline()
 
-agent.train(env, model, opt, n_steps_lim=100_000)
+algo .train(env, model, opt, n_steps_lim=100_000)
 score = evaluate(
     rf.EpisodicSyncVectorEnv([lambda: gym.make("CartPole-v1") for _ in range(10)]),
     model,
