@@ -95,5 +95,5 @@ def act(
     logits = model(o)
     dist = Categorical(logits=logits)
     a = dist.probs.argmax(dim=-1) if deterministic else dist.sample()
-    a = a.item() if a.size(0) == 1 else a.numpy()
+    a = a.item() if a.dim() == 1 else a.numpy()
     return a
