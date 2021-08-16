@@ -1,29 +1,58 @@
 ![build](https://github.com/sotetsuk/reinforce/workflows/build/badge.svg)
 
 # REINFORCE
+A simple REINFORCE algorithm implementation in PyTorch.
 
-A simple REINFORCE algorithm implementation.
+## Features
 
-## Usage
+- Support vector enviroments for faster training
+- Easy to customize using Mixins 
+
+## Examples
 
 ```py
 import gym
-from reinforce import REINFORCE, EntropyAugmentedReturn, FutureReturn, AvgBaseline, EpisodicSyncVectorEnv
+import torch
+import torch.nn as nn
+import torch.optim as optim
 
-model = LinearModel()
-opt = SGD()
+import reinforce as rf
+from reinforce.utils import evaluate
 
-env = gym.make_env()
-env = EpisodicSyncVectorEnv(env, n_env=10)
 
-agent = REINFORCE()
-agent = EntropyAugmentedReturn(agent, beta=1.0)
-agent = FutureReturn(agent)
-agent = AvgBaseline(agent, debiasing=True)
+class REINFORCEWithFutureReturnAndBatchAvgBaseline(
+    rf.FutureRewardMixin, rf.BatchAvgBaselineMixin, rf.REINFORCE
+):
+    def __init__(self):
+        super().__init__()
 
-for i in range(100):
-    agnet.train(env, model, opt, n_steps=1000)
-    evaluate(env, model, deterministic=True)
+    def train_episode(self, env, model, opt):
+        super().train_episode(env, model, opt)
+        if self.n_episodes % 100 == 0:
+            R = torch.stack(self.data["rewards"]).sum(dim=0).mean()
+            print(f"n_steps:{self.n_steps:6d}, n_episodes:{self.n_episodes:4d}, R:{R:.3f}")
+
+
+env = rf.EpisodicSyncVectorEnv([lambda: gym.make("CartPole-v1") for _ in range(10)])
+model = nn.Sequential(nn.Linear(4, 64), nn.ReLU(), nn.Linear(64, 2))
+opt = optim.Adam(model.parameters(), lr=0.01)
+agent = REINFORCEWithFutureReturnAndBatchAvgBaseline()
+
+agent.train(env, model, opt, n_steps_lim=100_000)
+score = evaluate(
+    rf.EpisodicSyncVectorEnv([lambda: gym.make("CartPole-v1") for _ in range(10)]),
+    model,
+    deterministic=True,
+)
+print(f"Final evaluation score = {score:.3f}")
+```
+
+## Build
+Please use poetry to build
+
+```sh
+$ poetry install
+$ poetry build
 ```
 
 ## License
