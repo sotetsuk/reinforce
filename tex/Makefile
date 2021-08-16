@@ -2,7 +2,7 @@ clean:
 	ls | grep main | grep -v main.tex | xargs rm -rf
 	ls | grep minted | xargs rm -rf
 
-main.pdf: main.tex reference.bib 
+main.pdf: main.tex reference.bib
 	pdflatex -shell-escape main && bibtex main && pdflatex -shell-escape main && pdflatex -shell-escape main
 
 spell-check:

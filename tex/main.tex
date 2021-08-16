@@ -33,7 +33,7 @@ Sutton book~\cite{Sutton2018-ij}.
 
 
 \begin{itemize}
-	\item Assumes Episodic MDPs. 
+	\item Assumes Episodic MDPs.
 	\item Discount factor is omitted for the simplicity.
 \end{itemize}
 
@@ -48,25 +48,25 @@ J(\theta) := \mathbb{E}_{(s_1, a_1, \ldots, s_T, a_T) \sim p_\theta(s_1, a_1, \l
 Policy gradient $\nabla_\theta J(\theta)$ is derived as
 
 \begin{eqnarray}
-\nabla_\theta J(\theta) 
+\nabla_\theta J(\theta)
 = \mathbb{E}_{(s_1, a_1, \ldots, s_T, a_T) \sim p_\theta(s_1, a_1, \ldots, s_T, a_T)} \Biggl[ \Biggl(\sum_{t^\prime=1}^{T} \nabla_\theta \log \pi_\theta (a_{t^\prime}|s_{t^\prime}) \Biggr) \Biggl( \sum_{t=1}^T r(s_t, a_t) \Biggr) \Biggr].
 \end{eqnarray}
 
 \subsection{Vanilla REINFORCE}
 
 \begin{eqnarray}
-\nabla_\theta J(\theta) 
+\nabla_\theta J(\theta)
 &\approx& \frac{1}{N} \sum_{n=1}^{N} \Biggl( \sum_{t^\prime=1}^{T} \nabla_\theta \log \pi_\theta (a_{n, t^\prime}|s_{n, t^\prime}) \Biggr) \Biggl( \sum_{t=1}^T r(s_{n, t}, a_{n, t}) \Biggr) \\
-&=& \frac{1}{N} \sum_{n=1}^{N} \mathcal{R}_n \sum_{t^\prime=1}^{T} \nabla_\theta \log \pi_\theta (a_{n, t^\prime}|s_{n, t^\prime}) 
+&=& \frac{1}{N} \sum_{n=1}^{N} \mathcal{R}_n \sum_{t^\prime=1}^{T} \nabla_\theta \log \pi_\theta (a_{n, t^\prime}|s_{n, t^\prime})
 \end{eqnarray}
 where $\mathcal{R}_{n} := \sum_{t=1}^T r(s_{n, t}, a_{n, t})$.
 
 \subsection{REINFORCE with Future Return}
 
 \begin{eqnarray}
-\nabla_\theta J(\theta) 
+\nabla_\theta J(\theta)
 &\approx& \frac{1}{N} \sum_{n=1}^{N} \Biggl( \sum_{t^\prime=1}^{T} \nabla_\theta \log \pi_\theta (a_{n, t^\prime}|s_{n, t^\prime}) \Biggl(\, \sum_{{\color{red}{t=t^\prime}}}^{T} r(s_{n, t}, a_{n, t}) \Biggr) \Biggr)  \\
-&=& \frac{1}{N} \sum_{n=1}^{N} \sum_{t^\prime=1}^{T} \mathcal{R}_{n, {\color{red}{t^\prime}}} \nabla_\theta \log \pi_\theta (a_{n, t^\prime}|s_{n, t^\prime}) 
+&=& \frac{1}{N} \sum_{n=1}^{N} \sum_{t^\prime=1}^{T} \mathcal{R}_{n, {\color{red}{t^\prime}}} \nabla_\theta \log \pi_\theta (a_{n, t^\prime}|s_{n, t^\prime})
 \end{eqnarray}
 where $\mathcal{R}_{n, t^\prime} := \sum_{t=t^\prime}^T r(s_{n, t}, a_{n, t})$.
 
@@ -77,38 +77,38 @@ The entropy augumented return is defined by
 J(\theta) := \mathbb{E}_{(s_1, a_1, \ldots, s_T, a_T) \sim p_\theta(s_1, a_1, \ldots, s_T, a_T)} \Biggl[ \sum_{t=1}^{T} r(s_t, a_t) {\color{red}{ + \alpha \mathcal{H} \bigl(\pi_\theta(\, \cdot \,|\, s_t) \bigr) }}\Biggr],
 \end{eqnarray}
 where $\mathcal{H} \bigl(\pi_\theta(\, \cdot \,|\, s_t) \bigr)$ is the entropy term of policy $\pi_\theta$ at state $s_t$.
-The gradient is derived as 
+The gradient is derived as
 \begin{eqnarray}
-\nabla_\theta J(\theta) 
+\nabla_\theta J(\theta)
 \approx \frac{1}{N} \sum_{n=1}^{N} \Biggl( \sum_{t^\prime=1}^{T} \nabla_\theta \log \pi_\theta (a_{n, t^\prime}|s_{n, t^\prime}) \Biggr) \Biggl( \sum_{t=1}^T r(s_{n, t}, a_{n, t}) {\color{red}{ + \alpha \mathcal{H} \bigl(\pi_\theta(\, \cdot \,|\, s_t) \bigr) }} \Biggr)
 \end{eqnarray}
 
 \subsection{REINFORCE with Average Baselines}
 
 \begin{eqnarray}
-\nabla_\theta J(\theta) 
-\approx \frac{1}{N} \sum_{n=1}^{N} \Biggl(\mathcal{R}_n {\color{red}{- \frac{1}{N} \sum_{n^\prime=1}^N \mathcal{R}_n }} \Biggr)\sum_{t^\prime=1}^{T} \nabla_\theta \log \pi_\theta (a_{n, t^\prime}|s_{n, t^\prime}) 
+\nabla_\theta J(\theta)
+\approx \frac{1}{N} \sum_{n=1}^{N} \Biggl(\mathcal{R}_n {\color{red}{- \frac{1}{N} \sum_{n^\prime=1}^N \mathcal{R}_n }} \Biggr)\sum_{t^\prime=1}^{T} \nabla_\theta \log \pi_\theta (a_{n, t^\prime}|s_{n, t^\prime})
 \end{eqnarray}
 
-For the future return case, 
+For the future return case,
 
 \begin{eqnarray}
-\nabla_\theta J(\theta) 
-\approx \frac{1}{N} \sum_{n=1}^{N} \sum_{t^\prime=1}^{T} \Biggl(\mathcal{R}_{n, t^\prime} {\color{red}{- \frac{1}{N} \sum_{n^\prime=1}^N \mathcal{R}_{n^\prime, t^\prime} }} \Biggr)  \nabla_\theta \log \pi_\theta (a_{n, t^\prime}|s_{n, t^\prime}) 
+\nabla_\theta J(\theta)
+\approx \frac{1}{N} \sum_{n=1}^{N} \sum_{t^\prime=1}^{T} \Biggl(\mathcal{R}_{n, t^\prime} {\color{red}{- \frac{1}{N} \sum_{n^\prime=1}^N \mathcal{R}_{n^\prime, t^\prime} }} \Biggr)  \nabla_\theta \log \pi_\theta (a_{n, t^\prime}|s_{n, t^\prime})
 \end{eqnarray}
 
 \subsubsection{Debiasing Factor}
 
 \begin{eqnarray}
-\nabla_\theta J(\theta) 
-\approx \frac{1}{{\color{red}{N-1}}} \sum_{n=1}^{N} \Biggl(\mathcal{R}_n - \frac{1}{N} \sum_{n^\prime=1}^N \mathcal{R}_n \Biggr)\sum_{t^\prime=1}^{T} \nabla_\theta \log \pi_\theta (a_{n, t^\prime}|s_{n, t^\prime}) 
+\nabla_\theta J(\theta)
+\approx \frac{1}{{\color{red}{N-1}}} \sum_{n=1}^{N} \Biggl(\mathcal{R}_n - \frac{1}{N} \sum_{n^\prime=1}^N \mathcal{R}_n \Biggr)\sum_{t^\prime=1}^{T} \nabla_\theta \log \pi_\theta (a_{n, t^\prime}|s_{n, t^\prime})
 \end{eqnarray}
 
-For the future return case, 
+For the future return case,
 
 \begin{eqnarray}
-\nabla_\theta J(\theta) 
-\approx \frac{1}{{\color{red}{N-1}}} \sum_{n=1}^{N} \sum_{t^\prime=1}^{T} \Biggl(\mathcal{R}_{n, t^\prime} - \frac{1}{N} \sum_{n^\prime=1}^N \mathcal{R}_{n^\prime, t^\prime} \Biggr)  \nabla_\theta \log \pi_\theta (a_{n, t^\prime}|s_{n, t^\prime}) 
+\nabla_\theta J(\theta)
+\approx \frac{1}{{\color{red}{N-1}}} \sum_{n=1}^{N} \sum_{t^\prime=1}^{T} \Biggl(\mathcal{R}_{n, t^\prime} - \frac{1}{N} \sum_{n^\prime=1}^N \mathcal{R}_{n^\prime, t^\prime} \Biggr)  \nabla_\theta \log \pi_\theta (a_{n, t^\prime}|s_{n, t^\prime})
 \end{eqnarray}
 
 

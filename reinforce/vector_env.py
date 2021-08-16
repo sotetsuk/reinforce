@@ -19,7 +19,7 @@ class EpisodicAsyncVectorEnv(VectorEnv):
 class EpisodicSyncVectorEnv(VectorEnv):
     """Episodic version of gym.vector_env.SyncVectorEnv.
     Each episode waits until all of the episodes end.
-    After the terminal state, the observation and reward will be filled with zero value
+    After the terminal state, the observation and reward will be filled with 0.
     and done will keep True value.
 
     Parameters

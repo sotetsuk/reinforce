@@ -6,7 +6,7 @@ A simple REINFORCE algorithm implementation in PyTorch.
 ## Features
 
 - Support vector enviroments for faster training
-- Easy to customize using Mixins 
+- Easy to customize using Mixins
 
 ## Examples
 
@@ -56,5 +56,6 @@ $ poetry build
 ```
 
 ## License
+The MIT License (MIT)
 
-MIT License
+Copyright (c) 2021 Sotetsu KOYAMADA
