@@ -85,6 +85,7 @@ for lr in [0.01, 0.03, 0.1]:
             results[f"algo{algo_num}"].append(score_seq)
 
     plt.figure()
+    plt.title(f"lr={lr}")
     for algo_num in range(1, 5):
         plt.plot(
             np.arange(10 ** 4, 10 ** 5 + 1, 10 ** 4),
