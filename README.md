@@ -47,6 +47,15 @@ score = evaluate(
 print(f"Final evaluation score = {score:.3f}")
 ```
 
+## Variants
+
+|Super class|Gradient|
+|---|---|
+|`(REINFORCE)`   | ![](./fig/rf1.png)  |
+|`(FutureRewardMixin, REINFORCE)`   | ![](./fig/rf2.png)  |
+|`(BatchAvgMixin, REINFORCE)`   | ![](./fig/rf3.png)  |
+|`(FutureRewardMixin, BatchAvgMixin, REINFORCE)`   | ![](./fig/rf4.png)  |
+
 ## Build
 Please use poetry to build
 
