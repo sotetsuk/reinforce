@@ -18,6 +18,9 @@ class REINFORCE:
         self.n_episodes: int = 0
         self.n_batch_updates: int = 0
         self.data: Dict[str, List[torch.Tensor]] = {}
+        self.env = None
+        self.model = None
+        self.opt = None
 
     def train(
         self,
@@ -26,32 +29,32 @@ class REINFORCE:
         opt: optim.Optimizer,
         n_steps_lim: int = 100_000,
     ):
+        self.env, self.model, self.opt = env, model, opt
         while self.n_steps < n_steps_lim:
-            self.n_episodes += env.num_envs
-            self.train_episode(env, model, opt)
+            self.train_episode()
+        self.env, self.model, self.opt = None, None, None
 
-    def train_episode(
-        self, env: VectorEnv, model: nn.Module, opt: optim.Optimizer
-    ):
+    def train_episode(self):
+        self.n_episodes += self.env.num_envs
         self.data = {}
-        model.train()
+        self.model.train()
 
-        observations = env.reset()  # (num_envs, obs_dim)
-        dones = [False for _ in range(env.num_envs)]
-        mask = torch.FloatTensor([1.0 for _ in range(env.num_envs)])
+        observations = self.env.reset()  # (num_envs, obs_dim)
+        dones = [False for _ in range(self.env.num_envs)]
+        mask = torch.FloatTensor([1.0 for _ in range(self.env.num_envs)])
         while not all(dones):
-            logits = model(
+            logits = self.model(
                 torch.from_numpy(observations).float()
             )  # (num_envs, action_dim)
             dist = Categorical(logits=logits)
             actions = dist.sample()  # (num_envs)
             log_p = dist.log_prob(actions)  # (num_envs)
             self.n_steps += sum([not done for done in dones])
-            observations, rewards, dones, info = env.step(actions.numpy())
+            observations, rewards, dones, info = self.env.step(actions.numpy())
             self.push(log_p=log_p, actions=actions, rewards=rewards, mask=mask)
             mask = 1.0 - torch.from_numpy(dones).float()
 
-        self.update_gradient(opt)
+        self.update_gradient(self.opt)
 
     def update_gradient(self, opt: optim.Optimizer):
         self.n_batch_updates += 1
