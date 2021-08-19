@@ -10,9 +10,7 @@ import reinforce as rf
 from reinforce.utils import evaluate
 
 
-class REINFORCEWithFutureReturnAndBatchAvgBaseline(
-    rf.FutureRewardMixin, rf.BatchAvgBaselineMixin, rf.REINFORCE
-):
+class REINFORCE(rf.FutureRewardMixin, rf.BatchAvgBaselineMixin, rf.REINFORCE):
     def __init__(self):
         super().__init__()
 
@@ -31,14 +29,14 @@ env = rf.EpisodicSyncVectorEnv(
 )
 model = nn.Sequential(nn.Linear(4, 64), nn.ReLU(), nn.Linear(64, 2))
 opt = optim.Adam(model.parameters(), lr=0.01)
-algo = REINFORCEWithFutureReturnAndBatchAvgBaseline()
+algo = REINFORCE()
 
 algo.train(env, model, opt, n_steps_lim=100_000)
-score = evaluate(
+eval_R = evaluate(
     rf.EpisodicSyncVectorEnv(
         [lambda: gym.make("CartPole-v1") for _ in range(10)]
     ),
     model,
     deterministic=True,
 )
-print(f"Final evaluation score = {score:.3f}")
+print(f"Eval R: {eval_R:.3f}")
