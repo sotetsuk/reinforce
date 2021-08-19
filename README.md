@@ -12,9 +12,6 @@ A simple REINFORCE algorithm implementation in PyTorch.
 ## Examples
 
 ```py
-# Copyright (c) 2021 Sotetsu KOYAMADA
-# https://github.com/sotetsuk/reinforce/blob/master/LICENSE
-
 import gym
 import torch
 import torch.nn as nn
@@ -55,6 +52,8 @@ print(f"Eval R: {eval_R:.3f}")
 |---|---|
 |`(REINFORCE)`   | ![](./fig/rf1.png)  |
 |`(FutureRewardMixin, REINFORCE)`   | ![](./fig/rf2.png)  |
+|`(MaxEntMixin, REINFORCE)`   | ![](./fig/rf5.png)  |
+|`(MaxEntMixin, FutureReturnMixin, REINFORCE)`   | ![](./fig/rf6.png)  |
 |`(BatchAvgMixin, REINFORCE)`   | ![](./fig/rf3.png)  |
 |`(FutureRewardMixin, BatchAvgMixin, REINFORCE)`   | ![](./fig/rf4.png)  |
 
