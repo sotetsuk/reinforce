@@ -9,8 +9,6 @@ import torch.optim as optim
 from gym.vector.vector_env import VectorEnv
 from torch.distributions import Categorical
 
-cross_entropy = nn.CrossEntropyLoss(reduction="none")
-
 
 class REINFORCE:
     def __init__(self):
