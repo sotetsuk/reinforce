@@ -41,18 +41,21 @@ class REINFORCE:
         dones = [False for _ in range(self.env.num_envs)]
         mask = torch.FloatTensor([1.0 for _ in range(self.env.num_envs)])
         while not all(dones):
-            logits = self.model(
-                torch.from_numpy(observations).float()
-            )  # (num_envs, action_dim)
-            dist = Categorical(logits=logits)
-            actions = dist.sample()  # (num_envs)
-            log_p = dist.log_prob(actions)  # (num_envs)
             self.n_steps += sum([not done for done in dones])
+            actions = self.act(torch.from_numpy(observations).float())
             observations, rewards, dones, info = self.env.step(actions.numpy())
-            self.push(log_p=log_p, actions=actions, rewards=rewards, mask=mask)
+            self.push(rewards=rewards, mask=mask)
             mask = 1.0 - torch.from_numpy(dones).float()
-
         self.update_gradient(self.opt)
+
+    def act(self, observations: torch.Tensor):
+        logits = self.model(observations)  # (num_envs, action_dim)
+        dist = Categorical(logits=logits)
+        actions = dist.sample()  # (num_envs)
+        log_p = dist.log_prob(actions)  # (num_envs)
+        entropy = dist.entropy()  # (num_envs)
+        self.push(log_p=log_p, actions=actions, entropy=entropy)
+        return actions
 
     def update_gradient(self, opt: optim.Optimizer):
         self.n_batch_updates += 1
