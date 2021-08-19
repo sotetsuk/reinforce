@@ -5,8 +5,9 @@ A simple REINFORCE algorithm implementation in PyTorch.
 
 ## Features
 
-- Support vector enviroments for faster training
-- Easy to customize using Mixins
+- **Simple** Core REINFORCE implementations is <100 lines
+- **Fast** Support vector enviroments for efficient batch computing
+- **Customizable** Easy to build your own REINFORCE class using Mixins
 
 ## Examples
 
