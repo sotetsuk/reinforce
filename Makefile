@@ -27,4 +27,4 @@ install:
 	poetry build
 
 test:
-	poetry run pytest --doctest-modules
+	poetry run pytest --doctest-modules reinforce tests
