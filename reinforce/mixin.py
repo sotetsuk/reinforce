@@ -31,8 +31,6 @@ class BatchAvgBaselineMixin:
         return -scale * ((R - b) * log_p * mask).sum(dim=1).mean(dim=0)
 
     def compute_baseline(self, R, mask):
-        R = R.detach()
-        mask = mask.detach()
         num_envs = R.size(0)
         R_sum = R.sum(dim=0)  # (max_seq_len)
         n_samples_per_time = mask.sum(dim=0)  # (max_seq_len)

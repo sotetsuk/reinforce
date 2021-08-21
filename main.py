@@ -14,8 +14,8 @@ class REINFORCE(rf.FutureRewardMixin, rf.BatchAvgBaselineMixin, rf.REINFORCE):
     def __init__(self):
         super().__init__()
 
-    def train_episode(self, env, model, opt):
-        super().train_episode(env, model, opt)
+    def train_episode(self):
+        super().train_episode()
         if self.n_episodes % 100 == 0:
             R = torch.stack(self.data["rewards"]).sum(dim=0).mean()
             print(
