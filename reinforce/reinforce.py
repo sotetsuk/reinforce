@@ -46,7 +46,7 @@ class REINFORCE:
             observations, rewards, dones, info = self.env.step(actions.numpy())
             self.push(rewards=rewards, mask=mask)
             mask = 1.0 - torch.from_numpy(dones).float()
-        self.update_gradient(self.opt)
+        self.update_gradient()
 
     def act(self, observations: torch.Tensor):
         logits = self.model(observations)  # (num_envs, action_dim)
@@ -57,12 +57,12 @@ class REINFORCE:
         self.push(log_p=log_p, actions=actions, entropy=entropy)
         return actions
 
-    def update_gradient(self, opt: optim.Optimizer):
+    def update_gradient(self):
         self.n_batch_updates += 1
-        opt.zero_grad()
+        self.opt.zero_grad()
         loss = self.compute_loss()
         loss.backward()
-        opt.step()
+        self.opt.step()
 
     def compute_loss(self):
         mask = torch.stack(self.data["mask"]).t()  # (n_env, seq_len)
