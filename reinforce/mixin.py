@@ -37,3 +37,13 @@ class BatchAvgBaselineMixin:
         assert (n_samples_per_time == 0).sum() == 0
         avg = R_sum / n_samples_per_time  # (max_seq_len)
         return avg.repeat((num_envs, 1))  # (num_envs, seq_len)
+
+
+class EntLossMixin:
+    def compute_loss(self):
+        loss = super().compute_loss()
+        ent = torch.stack(self.data["entropy"]).t()  # (num_env, max_seq_len)
+        mask = torch.stack(self.data["mask"]).t()  # (num_env, max_seq_len)
+        ent *= mask
+        ent_loss = -ent.sum() / mask.sum()
+        return loss + self.ent_coef * ent_loss
