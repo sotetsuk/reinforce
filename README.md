@@ -54,6 +54,7 @@ print(f"Eval R: {eval_R:.3f}")
 |`(FutureRewardMixin, REINFORCE)`   | ![](./fig/rf2.png)  |
 |`(BatchAvgMixin, REINFORCE)`   | ![](./fig/rf3.png)  |
 |`(FutureRewardMixin, BatchAvgMixin, REINFORCE)`   | ![](./fig/rf4.png)  |
+|`(EntLossMixin, REINFORCE)`   | ![](./fig/rf5.png)  |
 
 ## Build
 Please use poetry to build

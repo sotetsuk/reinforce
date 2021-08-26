@@ -68,27 +68,6 @@ where $\mathcal{R}_{n} := \sum_{t=1}^T r(s_{n, t}, a_{n, t})$.
 \end{eqnarray}
 where $\mathcal{R}_{n, t^\prime} := \sum_{t=t^\prime}^T r(s_{n, t}, a_{n, t})$.
 
-
-\subsection{Maximum Entropy}
-Let us define maximum entropy RL objective \citep{Haarnoja2017-xl} (TODO: check other ref) by
-\begin{eqnarray}
-J(\theta) := \mathbb{E}_{(s_1, a_1, \ldots, s_T, a_T) \sim p_\theta(s_1, a_1, \ldots, s_T, a_T)} \Biggl[ \sum_{t=1}^{T} r(s_t, a_t) {\color{red}{ + \alpha \mathcal{H} \bigl(\pi_\theta(\, \cdot \,|\, s_t) \bigr) }}\Biggr],
-\end{eqnarray}
-where $\mathcal{H} \bigl(\pi_\theta(\, \cdot \,|\, s_t) \bigr)$ is the entropy term of policy $\pi_\theta$ at state $s_t$ and $\alpha$ is a hyperparameter.
-Then, the gradient is derived as
-\begin{eqnarray}
-\nabla_\theta J(\theta)
-\approx \frac{1}{N} \sum_{n=1}^{N} {\color{red}{\mathcal{R}_n^{\mathrm{Ent}}}} \sum_{t^\prime=1}^{T} \nabla_\theta \log \pi_\theta (a_{n, t^\prime}|s_{n, t^\prime})
-\end{eqnarray}
-where $\mathcal{R}_{n}^{\mathrm{Ent}} := \sum_{t=1}^T r(s_{n, t}, a_{n, t}) {\color{red}{ + \alpha \mathcal{H} \bigl(\pi_\theta(\, \cdot \,|\, s_{n, t}) \bigr) }}$.
-For the future return case,
-\begin{eqnarray}
-\nabla_\theta J(\theta)
-\approx \frac{1}{N} \sum_{n=1}^{N} \sum_{t^\prime=1}^{T} {\color{red}{\mathcal{R}_{n, t^\prime}^{\mathrm{Ent}}}} \, \nabla_\theta \log \pi_\theta (a_{n, t^\prime}|s_{n, t^\prime})
-\end{eqnarray}
-where $\mathcal{R}_{n, t^\prime}^{\mathrm{Ent}} := \sum_{t=t^\prime}^T r(s_{n, t}, a_{n, t}) {\color{red}{ + \alpha \mathcal{H} \bigl(\pi_\theta(\, \cdot \,|\, s_{n, t}) \bigr) }}$.
-
-
 \subsection{Average Baselines}
 
 \begin{eqnarray}
@@ -117,6 +96,29 @@ For the future return case,
 \begin{eqnarray}
 \nabla_\theta J(\theta)
 \approx \frac{1}{{\color{red}{N-1}}} \sum_{n=1}^{N} \sum_{t^\prime=1}^{T} \Biggl(\mathcal{R}_{n, t^\prime} - \frac{1}{N} \sum_{n^\prime=1}^N \mathcal{R}_{n^\prime, t^\prime} \Biggr)  \nabla_\theta \log \pi_\theta (a_{n, t^\prime}|s_{n, t^\prime})
+\end{eqnarray}
+
+\subsection{Entropy regularization}
+We can add entropy regularization term to enhance the exploration~\citep{Mnih2016-eh}
+\begin{eqnarray}
+\nabla_\theta J(\theta)
+&:=& \frac{1}{N} \sum_{n=1}^{N} \mathcal{R}_n \sum_{t^\prime=1}^{T} \nabla_\theta \log \pi_\theta (a_{n, t^\prime}|s_{n, t^\prime}) +
+{\color{red}{\beta \mathcal{H} \bigl(\pi_\theta(\, \cdot \,|\, s_{t^\prime}) \bigr)}}.
+\end{eqnarray}
+
+\subsection{Maximum Entropy}
+Let us define maximum entropy RL objective \citep{Haarnoja2017-xl} (TODO: check other ref) by
+\begin{eqnarray}
+J(\theta) := \mathbb{E}_{(s_1, a_1, \ldots, s_T, a_T) \sim p_\theta(s_1, a_1, \ldots, s_T, a_T)} \Biggl[ \sum_{t=1}^{T} r(s_t, a_t) {\color{red}{ + \alpha \mathcal{H} \bigl(\pi_\theta(\, \cdot \,|\, s_t) \bigr) }}\Biggr],
+\end{eqnarray}
+where $\mathcal{H} \bigl(\pi_\theta(\, \cdot \,|\, s_t) \bigr)$ is the entropy term of policy $\pi_\theta$ at state $s_t$ and $\alpha$ is a hyperparameter.
+Then, the gradient is derived as
+\begin{eqnarray}
+\textrm{TBA.}
+\end{eqnarray}
+For the future return case,
+\begin{eqnarray}
+\textrm{TBA.}
 \end{eqnarray}
 
 \bibliographystyle{apalike}
