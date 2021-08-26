@@ -16,7 +16,6 @@ class REINFORCE(rf.REINFORCEABC):
     def __init__(self):
         self.n_steps: int = 0
         self.n_episodes: int = 0
-        self.n_batch_updates: int = 0
         self.data: Dict[str, List[torch.Tensor]] = {}
         self.env: Optional[VectorEnv] = None
         self.model: Optional[nn.Module] = None
@@ -63,7 +62,6 @@ class REINFORCE(rf.REINFORCEABC):
 
     def update_gradient(self):
         assert self.opt is not None
-        self.n_batch_updates += 1
         self.opt.zero_grad()
         loss = self.compute_loss()
         loss.backward()

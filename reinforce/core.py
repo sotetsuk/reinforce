@@ -11,7 +11,6 @@ from gym.vector.vector_env import VectorEnv
 class REINFORCEABC(ABC):
     n_steps: int = 0
     n_episodes: int = 0
-    n_batch_updates: int = 0
     data: Dict[str, List[torch.Tensor]] = {}
     env: Optional[VectorEnv] = None
     model: Optional[nn.Module] = None
