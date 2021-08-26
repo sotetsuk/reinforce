@@ -1,7 +1,7 @@
 # Copyright (c) 2021 Sotetsu KOYAMADA
 # https://github.com/sotetsuk/reinforce/blob/master/LICENSE
 
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import torch
 import torch.nn as nn
@@ -16,9 +16,9 @@ class REINFORCE:
         self.n_episodes: int = 0
         self.n_batch_updates: int = 0
         self.data: Dict[str, List[torch.Tensor]] = {}
-        self.env = None
-        self.model = None
-        self.opt = None
+        self.env: Optional[VectorEnv] = None
+        self.model: Optional[nn.Module] = None
+        self.opt: Optional[optim.Optimizer] = None
 
     def train(
         self,
@@ -33,6 +33,7 @@ class REINFORCE:
         self.env, self.model, self.opt = None, None, None
 
     def train_episode(self):
+        assert self.env is not None and self.model is not None
         self.n_episodes += self.env.num_envs
         self.data = {}
         self.model.train()
@@ -49,6 +50,7 @@ class REINFORCE:
         self.update_gradient()
 
     def act(self, observations: torch.Tensor):
+        assert self.model is not None
         logits = self.model(observations)  # (num_envs, action_dim)
         dist = Categorical(logits=logits)
         actions = dist.sample()  # (num_envs)
@@ -58,6 +60,7 @@ class REINFORCE:
         return actions
 
     def update_gradient(self):
+        assert self.opt is not None
         self.n_batch_updates += 1
         self.opt.zero_grad()
         loss = self.compute_loss()
