@@ -64,12 +64,12 @@ class REINFORCE:
         loss.backward()
         self.opt.step()
 
-    def compute_loss(self):
+    def compute_loss(self, reduce=True):
         mask = torch.stack(self.data["mask"]).t()  # (n_env, seq_len)
         R = self.compute_return() * mask  # (n_env, seq_len)
         log_p = torch.stack(self.data["log_p"]).t()  # (n_env, seq_len)
-
-        return -(R * log_p).sum(dim=1).mean(dim=0)
+        loss = -R * log_p
+        return loss.sum(dim=1).mean(dim=0) if reduce else loss
 
     def compute_return(self):
         seq_len = len(self.data["rewards"])
