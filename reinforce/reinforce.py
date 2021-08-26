@@ -56,9 +56,9 @@ class REINFORCE(rf.REINFORCEABC):
         logits = self.model(observations)  # (num_envs, action_dim)
         dist = Categorical(logits=logits)
         actions = dist.sample()  # (num_envs)
-        log_p = dist.log_prob(actions)  # (num_envs)
+        log_prob = dist.log_prob(actions)  # (num_envs)
         entropy = dist.entropy()  # (num_envs)
-        self.push_data(log_p=log_p, actions=actions, entropy=entropy)
+        self.push_data(log_prob=log_prob, actions=actions, entropy=entropy)
         return actions
 
     def update_gradient(self):
@@ -72,8 +72,8 @@ class REINFORCE(rf.REINFORCEABC):
     def compute_loss(self, reduce=True):
         mask = torch.stack(self.data["mask"]).t()  # (n_env, seq_len)
         R = self.compute_return() * mask  # (n_env, seq_len)
-        log_p = torch.stack(self.data["log_p"]).t()  # (n_env, seq_len)
-        loss = -R * log_p
+        log_prob = torch.stack(self.data["log_prob"]).t()  # (n_env, seq_len)
+        loss = -R * log_prob
         return loss.sum(dim=1).mean(dim=0) if reduce else loss
 
     def compute_return(self):

@@ -22,14 +22,14 @@ class BatchAvgBaselineMixin(rf.REINFORCEABC):
     def compute_loss(self, reduce=True):
         mask = torch.stack(self.data["mask"]).t()  # (num_env, max_seq_len)
         R = self.compute_return() * mask  # (num_env, max_seq_len)
-        log_p = torch.stack(self.data["log_p"]).t()  # (n_env, seq_len)
+        log_prob = torch.stack(self.data["log_prob"]).t()  # (n_env, seq_len)
         b = self.compute_baseline(R, mask)
 
         # debiasing factor
         num_envs = R.size(0)
         assert num_envs > 1
         scale = num_envs / (num_envs - 1)
-        loss = -scale * (R - b) * log_p * mask
+        loss = -scale * (R - b) * log_prob * mask
         return loss.sum(dim=1).mean(dim=0) if reduce else loss
 
     def compute_baseline(self, R, mask):
