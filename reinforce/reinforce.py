@@ -1,7 +1,7 @@
 # Copyright (c) 2021 Sotetsu KOYAMADA
 # https://github.com/sotetsuk/reinforce/blob/master/LICENSE
 
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import torch
 import torch.nn as nn
@@ -9,16 +9,17 @@ import torch.optim as optim
 from gym.vector.vector_env import VectorEnv
 from torch.distributions import Categorical
 
+import reinforce as rf
 
-class REINFORCE:
+
+class REINFORCE(rf.REINFORCEABC):
     def __init__(self):
         self.n_steps: int = 0
         self.n_episodes: int = 0
-        self.n_batch_updates: int = 0
         self.data: Dict[str, List[torch.Tensor]] = {}
-        self.env = None
-        self.model = None
-        self.opt = None
+        self.env: Optional[VectorEnv] = None
+        self.model: Optional[nn.Module] = None
+        self.opt: Optional[optim.Optimizer] = None
 
     def train(
         self,
@@ -26,13 +27,14 @@ class REINFORCE:
         model: nn.Module,
         opt: optim.Optimizer,
         n_steps_lim: int = 100_000,
-    ):
+    ) -> None:
         self.env, self.model, self.opt = env, model, opt
         while self.n_steps < n_steps_lim:
             self.train_episode()
         self.env, self.model, self.opt = None, None, None
 
-    def train_episode(self):
+    def train_episode(self) -> None:
+        assert self.env is not None and self.model is not None
         self.n_episodes += self.env.num_envs
         self.data = {}
         self.model.train()
@@ -44,34 +46,35 @@ class REINFORCE:
             self.n_steps += sum([not done for done in dones])
             actions = self.act(torch.from_numpy(observations).float())
             observations, rewards, dones, info = self.env.step(actions.numpy())
-            self.push(rewards=rewards, mask=mask)
+            self.push_data(rewards=rewards, mask=mask)
             mask = 1.0 - torch.from_numpy(dones).float()
         self.update_gradient()
 
-    def act(self, observations: torch.Tensor):
+    def act(self, observations: torch.Tensor) -> torch.Tensor:
+        assert self.model is not None
         logits = self.model(observations)  # (num_envs, action_dim)
         dist = Categorical(logits=logits)
         actions = dist.sample()  # (num_envs)
-        log_p = dist.log_prob(actions)  # (num_envs)
+        log_prob = dist.log_prob(actions)  # (num_envs)
         entropy = dist.entropy()  # (num_envs)
-        self.push(log_p=log_p, actions=actions, entropy=entropy)
+        self.push_data(log_prob=log_prob, actions=actions, entropy=entropy)
         return actions
 
-    def update_gradient(self):
-        self.n_batch_updates += 1
+    def update_gradient(self) -> None:
+        assert self.opt is not None
         self.opt.zero_grad()
         loss = self.compute_loss()
         loss.backward()
         self.opt.step()
 
-    def compute_loss(self, reduce=True):
+    def compute_loss(self, reduce=True) -> torch.Tensor:
         mask = torch.stack(self.data["mask"]).t()  # (n_env, seq_len)
         R = self.compute_return() * mask  # (n_env, seq_len)
-        log_p = torch.stack(self.data["log_p"]).t()  # (n_env, seq_len)
-        loss = -R * log_p
+        log_prob = torch.stack(self.data["log_prob"]).t()  # (n_env, seq_len)
+        loss = -R * log_prob
         return loss.sum(dim=1).mean(dim=0) if reduce else loss
 
-    def compute_return(self):
+    def compute_return(self) -> torch.Tensor:
         seq_len = len(self.data["rewards"])
         R = (
             torch.stack(self.data["rewards"])  # (max_seq_len, num_env)
@@ -80,11 +83,3 @@ class REINFORCE:
             .t()  # (num_env, max_seq_len)
         )
         return R  # (n_env, max_seq_len)
-
-    def push(self, **kwargs):
-        for k, v in kwargs.items():
-            if not isinstance(v, torch.Tensor):
-                v = torch.from_numpy(v).float()
-            if k not in self.data:
-                self.data[k] = []
-            self.data[k].append(v)
