@@ -47,7 +47,7 @@ class REINFORCE(rf.REINFORCEABC):
             self.n_steps += sum([not done for done in dones])
             actions = self.act(torch.from_numpy(observations).float())
             observations, rewards, dones, info = self.env.step(actions.numpy())
-            self.push(rewards=rewards, mask=mask)
+            self.push_data(rewards=rewards, mask=mask)
             mask = 1.0 - torch.from_numpy(dones).float()
         self.update_gradient()
 
@@ -58,7 +58,7 @@ class REINFORCE(rf.REINFORCEABC):
         actions = dist.sample()  # (num_envs)
         log_p = dist.log_prob(actions)  # (num_envs)
         entropy = dist.entropy()  # (num_envs)
-        self.push(log_p=log_p, actions=actions, entropy=entropy)
+        self.push_data(log_p=log_p, actions=actions, entropy=entropy)
         return actions
 
     def update_gradient(self):
@@ -86,7 +86,7 @@ class REINFORCE(rf.REINFORCEABC):
         )
         return R  # (n_env, max_seq_len)
 
-    def push(self, **kwargs):
+    def push_data(self, **kwargs):
         for k, v in kwargs.items():
             if not isinstance(v, torch.Tensor):
                 v = torch.from_numpy(v).float()

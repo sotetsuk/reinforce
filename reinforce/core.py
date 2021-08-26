@@ -47,5 +47,5 @@ class REINFORCEABC(ABC):
         pass
 
     @abstractmethod
-    def push(self, **kwargs):
+    def push_data(self, **kwargs):
         pass
