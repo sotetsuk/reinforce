@@ -3,8 +3,10 @@
 
 import torch
 
+import reinforce as rf
 
-class FutureRewardMixin:
+
+class FutureRewardMixin(rf.REINFORCEABC):
     def compute_return(self):
         R = (
             torch.stack(self.data["rewards"])
@@ -16,7 +18,7 @@ class FutureRewardMixin:
         return R  # (n_env, max_seq_len)
 
 
-class BatchAvgBaselineMixin:
+class BatchAvgBaselineMixin(rf.REINFORCEABC):
     def compute_loss(self, reduce=True):
         mask = torch.stack(self.data["mask"]).t()  # (num_env, max_seq_len)
         R = self.compute_return() * mask  # (num_env, max_seq_len)
@@ -39,7 +41,9 @@ class BatchAvgBaselineMixin:
         return avg.repeat((num_envs, 1))  # (num_envs, seq_len)
 
 
-class EntLossMixin:
+class EntLossMixin(rf.REINFORCEABC):
+    ent_coef: float
+
     def compute_loss(self, reduce=True):
         loss = super().compute_loss(reduce=False)
         ent = torch.stack(self.data["entropy"]).t()  # (num_env, max_seq_len)
