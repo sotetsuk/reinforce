@@ -103,7 +103,7 @@ We can add entropy regularization term to enhance the exploration~\citep{Mnih201
 \begin{eqnarray}
 \nabla_\theta J(\theta)
 &:=& \frac{1}{N} \sum_{n=1}^{N} \mathcal{R}_n \sum_{t^\prime=1}^{T} \nabla_\theta \log \pi_\theta (a_{n, t^\prime}|s_{n, t^\prime}) +
-{\color{red}{\beta \mathcal{H} \bigl(\pi_\theta(\, \cdot \,|\, s_{t^\prime}) \bigr)}}.
+{\color{red}{\beta \mathcal{H} \bigl(\pi_\theta(\, \cdot \,|\, s_{n, t^\prime}) \bigr)}}.
 \end{eqnarray}
 
 \subsection{Maximum Entropy}
