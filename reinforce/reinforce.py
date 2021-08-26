@@ -27,13 +27,13 @@ class REINFORCE(rf.REINFORCEABC):
         model: nn.Module,
         opt: optim.Optimizer,
         n_steps_lim: int = 100_000,
-    ):
+    ) -> None:
         self.env, self.model, self.opt = env, model, opt
         while self.n_steps < n_steps_lim:
             self.train_episode()
         self.env, self.model, self.opt = None, None, None
 
-    def train_episode(self):
+    def train_episode(self) -> None:
         assert self.env is not None and self.model is not None
         self.n_episodes += self.env.num_envs
         self.data = {}
@@ -50,7 +50,7 @@ class REINFORCE(rf.REINFORCEABC):
             mask = 1.0 - torch.from_numpy(dones).float()
         self.update_gradient()
 
-    def act(self, observations: torch.Tensor):
+    def act(self, observations: torch.Tensor) -> torch.Tensor:
         assert self.model is not None
         logits = self.model(observations)  # (num_envs, action_dim)
         dist = Categorical(logits=logits)
@@ -60,21 +60,21 @@ class REINFORCE(rf.REINFORCEABC):
         self.push_data(log_prob=log_prob, actions=actions, entropy=entropy)
         return actions
 
-    def update_gradient(self):
+    def update_gradient(self) -> None:
         assert self.opt is not None
         self.opt.zero_grad()
         loss = self.compute_loss()
         loss.backward()
         self.opt.step()
 
-    def compute_loss(self, reduce=True):
+    def compute_loss(self, reduce=True) -> torch.Tensor:
         mask = torch.stack(self.data["mask"]).t()  # (n_env, seq_len)
         R = self.compute_return() * mask  # (n_env, seq_len)
         log_prob = torch.stack(self.data["log_prob"]).t()  # (n_env, seq_len)
         loss = -R * log_prob
         return loss.sum(dim=1).mean(dim=0) if reduce else loss
 
-    def compute_return(self):
+    def compute_return(self) -> torch.Tensor:
         seq_len = len(self.data["rewards"])
         R = (
             torch.stack(self.data["rewards"])  # (max_seq_len, num_env)

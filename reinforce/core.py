@@ -23,30 +23,30 @@ class REINFORCEABC(ABC):
         model: nn.Module,
         opt: optim.Optimizer,
         n_steps_lim: int,
-    ):
+    ) -> None:
         pass
 
     @abstractmethod
-    def train_episode(self):
+    def train_episode(self) -> None:
         pass
 
     @abstractmethod
-    def act(self, observations: torch.Tensor):
+    def act(self, observations: torch.Tensor) -> torch.Tensor:
         pass
 
     @abstractmethod
-    def update_gradient(self):
+    def update_gradient(self) -> None:
         pass
 
     @abstractmethod
-    def compute_loss(self, reduce=True):
+    def compute_loss(self, reduce=True) -> torch.Tensor:
         pass
 
     @abstractmethod
-    def compute_return(self):
+    def compute_return(self) -> torch.Tensor:
         pass
 
-    def push_data(self, **kwargs):
+    def push_data(self, **kwargs) -> None:
         for k, v in kwargs.items():
             assert isinstance(v, (torch.Tensor, np.ndarray))
             if not isinstance(v, torch.Tensor):
