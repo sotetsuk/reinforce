@@ -17,7 +17,7 @@ class FutureRewardMixin:
 
 
 class BatchAvgBaselineMixin:
-    def compute_loss(self):
+    def compute_loss(self, reduce=True):
         mask = torch.stack(self.data["mask"]).t()  # (num_env, max_seq_len)
         R = self.compute_return() * mask  # (num_env, max_seq_len)
         log_p = torch.stack(self.data["log_p"]).t()  # (n_env, seq_len)
@@ -27,8 +27,8 @@ class BatchAvgBaselineMixin:
         num_envs = R.size(0)
         assert num_envs > 1
         scale = num_envs / (num_envs - 1)
-
-        return -scale * ((R - b) * log_p * mask).sum(dim=1).mean(dim=0)
+        loss = -scale * (R - b) * log_p * mask
+        return loss.sum(dim=1).mean(dim=0) if reduce else loss
 
     def compute_baseline(self, R, mask):
         num_envs = R.size(0)
@@ -40,10 +40,11 @@ class BatchAvgBaselineMixin:
 
 
 class EntLossMixin:
-    def compute_loss(self):
-        loss = super().compute_loss()
+    def compute_loss(self, reduce=True):
+        loss = super().compute_loss(reduce=False)
         ent = torch.stack(self.data["entropy"]).t()  # (num_env, max_seq_len)
         mask = torch.stack(self.data["mask"]).t()  # (num_env, max_seq_len)
-        ent *= mask
-        ent_loss = -ent.sum() / mask.sum()
-        return loss + self.ent_coef * ent_loss
+        assert loss.size() == ent.size() == mask.size()
+        ent_loss = -ent * mask
+        loss += self.ent_coef * ent_loss
+        return loss.sum(dim=1).mean(dim=0) if reduce else loss
