@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -46,6 +47,11 @@ class REINFORCEABC(ABC):
     def compute_return(self):
         pass
 
-    @abstractmethod
     def push_data(self, **kwargs):
-        pass
+        for k, v in kwargs.items():
+            assert isinstance(v, (torch.Tensor, np.ndarray))
+            if not isinstance(v, torch.Tensor):
+                v = torch.from_numpy(v).float()
+            if k not in self.data:
+                self.data[k] = []
+            self.data[k].append(v)

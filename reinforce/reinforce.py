@@ -85,11 +85,3 @@ class REINFORCE(rf.REINFORCEABC):
             .t()  # (num_env, max_seq_len)
         )
         return R  # (n_env, max_seq_len)
-
-    def push_data(self, **kwargs):
-        for k, v in kwargs.items():
-            if not isinstance(v, torch.Tensor):
-                v = torch.from_numpy(v).float()
-            if k not in self.data:
-                self.data[k] = []
-            self.data[k].append(v)
