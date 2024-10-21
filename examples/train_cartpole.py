@@ -66,9 +66,9 @@ for lr in [0.01, 0.03, 0.1]:
             opt = optim.Adam(model.parameters(), lr=0.03)
             n_train = 0
             score_seq = []
-            while algo.n_steps < 10 ** 5:
+            while algo.n_steps < 10**5:
                 algo.train(
-                    env, model, opt, n_steps_lim=(n_train + 1) * (10 ** 4)
+                    env, model, opt, n_steps_lim=(n_train + 1) * (10**4)
                 )
                 score = evaluate(
                     make_env(),
@@ -88,7 +88,7 @@ for lr in [0.01, 0.03, 0.1]:
     plt.title(f"lr={lr}")
     for algo_num in range(1, 5):
         plt.plot(
-            np.arange(10 ** 4, 10 ** 5 + 1, 10 ** 4),
+            np.arange(10**4, 10**5 + 1, 10**4),
             np.vstack([np.array(x) for x in results[f"algo{algo_num}"]]).mean(
                 axis=0
             ),
